@@ -325,8 +325,8 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    border-radius: 30px;
+    padding: 2px 4px;
+    border-radius: 4px;
     font-weight: 700;
     font-size: 0.95rem;
 }

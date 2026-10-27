@@ -65,9 +65,6 @@
                             <span class="fs-5">✂️</span> 
                             <span>1. <span class="lang-hi">કટિંગ માસ્ટર ઔર રેટ</span><span class="lang-en">Cutting Master & Rate</span></span>
                         </h2>
-                        <span class="badge bg-light text-primary border fs-6">
-                            ₹@lot.CuttingTotalCost.ToString("N0")
-                        </span>
                     </div>
 
                     <form method="post" asp-page-handler="SaveCutting" asp-route-id="@lot.Id">
@@ -123,9 +120,6 @@
                             <span class="fs-5">🪡</span> 
                             <span>2. <span class="lang-hi">ઇન્ટરલોક કહાં કરાના હૈ ઔર રેટ</span><span class="lang-en">Interlock Center & Rate</span></span>
                         </h2>
-                        <span class="badge bg-light text-info border fs-6">
-                            ₹@lot.InterlockTotalCost.ToString("N0")
-                        </span>
                     </div>
 
                     <form method="post" asp-page-handler="SaveInterlock" asp-route-id="@lot.Id">
@@ -158,7 +152,7 @@
                                 </div>
                             </div>
                             <div class="col-5 col-md-3 d-grid">
-                                <button type="submit" class="btn btn-info text-white fw-bold">
+                                <button type="submit" class="btn btn-primary fw-bold">
                                     💾 <span class="lang-hi">સેવ કરો</span><span class="lang-en">Save</span>
                                 </button>
                             </div>
@@ -187,31 +181,6 @@
                         <span class="lang-en">Enter pieces sewn directly next to artisan name</span>
                     </p>
 
-                    <!-- Piece Allocation Counter -->
-                    <div class="p-2 rounded-3 mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
-                        <div>
-                            <span class="fw-bold">
-                                <span class="lang-hi">પીસ હિસાબ:</span><span class="lang-en">Piece Balance:</span>
-                            </span>
-                            <span>
-                                <span class="lang-hi">કુલ: <strong>@lot.TotalPieces</strong> | સિયે ગયે: <strong id="liveStitchedPcs">@lot.StitchedPiecesCount</strong></span>
-                                <span class="lang-en">Total: <strong>@lot.TotalPieces</strong> | Stitched: <strong id="liveStitchedPcsEn">@lot.StitchedPiecesCount</strong></span>
-                            </span>
-                        </div>
-                        <div id="liveStitchingBadge" class="piece-tracker-badge @(lot.RemainingPiecesCount == 0 ? "balanced" : "warning")">
-                            @if (lot.RemainingPiecesCount == 0)
-                            {
-                                <span class="lang-hi">✓ સબ @lot.TotalPieces પીસ પૂરે બાંટે ગયે</span>
-                                <span class="lang-en">✓ All @lot.TotalPieces Pieces Assigned</span>
-                            }
-                            else
-                            {
-                                <span class="lang-hi">બાકી બચે: <span id="liveRemainingPcs">@lot.RemainingPiecesCount</span> પીસ</span>
-                                <span class="lang-en">Remaining: <span id="liveRemainingPcsEn">@lot.RemainingPiecesCount</span> Pcs</span>
-                            }
-                        </div>
-                    </div>
-
                     <form method="post" asp-page-handler="SaveStitching" asp-route-id="@lot.Id">
                         <div class="table-responsive">
                             <table class="table table-bordered align-middle">
@@ -220,14 +189,14 @@
                                         <th>
                                             <span class="lang-hi">કારીગર નામ</span><span class="lang-en">Artisan Name</span>
                                         </th>
-                                        <th style="width: 140px;">
+                                        <th style="width: 100px;">
                                             <span class="lang-hi">સિયે ગયે પીસ</span><span class="lang-en">Pieces</span>
                                         </th>
-                                        <th style="width: 110px;">
+                                        <th style="width: 100px;">
                                             <span class="lang-hi">રેટ (₹)</span><span class="lang-en">Rate (₹)</span>
                                         </th>
-                                        <th class="text-end" style="width: 120px;">
-                                            <span class="lang-hi">મજદૂરી (₹)</span><span class="lang-en">Amount (₹)</span>
+                                        <th class="text-end" style="width: 100px;">
+                                            <span class="lang-hi">મજદૂરી (₹)</span><span class="lang-en">Amount</span>
                                         </th>
                                     </tr>
                                 </thead>
@@ -253,12 +222,10 @@
                                                     <input type="number" min="0" name="pieces" 
                                                            value="@(pcs > 0 ? pcs.ToString() : "")" 
                                                            class="form-control fw-bold karigar-pcs-input" data-index="@idx" oninput="calcStitchingRow(@idx)" placeholder="0" />
-                                                    <span class="input-group-text"><span class="lang-hi">પીસ</span><span class="lang-en">pcs</span></span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text">₹</span>
                                                     <input type="number" min="0" step="0.5" name="rates" value="@rate" class="form-control karigar-rate-input" data-index="@idx" oninput="calcStitchingRow(@idx)" />
                                                 </div>
                                             </td>
@@ -279,6 +246,28 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                            
+                            <!-- Piece Allocation Counter -->
+                            <div class="p-2 rounded-3 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <div>
+                                    <span>
+                                        <span class="lang-hi">કુલ: <strong>@lot.TotalPieces</strong> | સિયે ગયે: <strong id="liveStitchedPcs">@lot.StitchedPiecesCount</strong></span>
+                                        <span class="lang-en">Total: <strong>@lot.TotalPieces</strong> | Stitched: <strong id="liveStitchedPcsEn">@lot.StitchedPiecesCount</strong></span>
+                                    </span>
+                                </div>
+                                <div id="liveStitchingBadge" class="piece-tracker-badge @(lot.RemainingPiecesCount == 0 ? "balanced" : "warning")">
+                                    @if (lot.RemainingPiecesCount == 0)
+                                    {
+                                        <span class="lang-hi">✓ સબ @lot.TotalPieces પીસ પૂરે બાંટે ગયે</span>
+                                        <span class="lang-en">✓ All @lot.TotalPieces Pieces Assigned</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="lang-hi">બાકી બચે: <span id="liveRemainingPcs">@lot.RemainingPiecesCount</span> પીસ</span>
+                                        <span class="lang-en">Remaining: <span id="liveRemainingPcsEn">@lot.RemainingPiecesCount</span> Pcs</span>
+                                    }
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-grid mt-2">
