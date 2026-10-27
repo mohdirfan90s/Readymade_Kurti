@@ -1,0 +1,170 @@
+@page
+@model GarmentLotManager.Pages.Master.KarigarsModel
+@{
+    ViewData["Title"] = "Manage Karigars";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-11 col-lg-9">
+        @if (!Model.IsUnlocked)
+        {
+            <div class="card-custom p-4 p-md-5 bg-white text-center shadow">
+                <div class="fs-1 mb-2">🔐</div>
+                <h2 class="h5 fw-bold text-dark">
+                    <span class="lang-hi">માસ્ટર પેજ લોક હૈ</span>
+                    <span class="lang-en">Master Page Locked</span>
+                </h2>
+                <p class="text-muted small">
+                    <span class="lang-hi">યહ પેજ દેખને કે લિયે પાસકોડ ડાલો:</span>
+                    <span class="lang-en">Enter passcode to unlock:</span>
+                </p>
+                <form method="post" asp-page-handler="Unlock" class="mt-3">
+                    <div class="input-group input-group-lg mb-3">
+                        <span class="input-group-text bg-light">🔑</span>
+                        <input type="password" name="passcode" class="form-control text-center fw-bold" placeholder="Passcode (123abc)" autofocus required />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                        🔓 <span class="lang-hi">અનલોક કરો</span><span class="lang-en">Unlock</span>
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h1 class="h4 fw-bold mb-0 text-dark">
+                        👥 <span class="lang-hi">કારીગર માસ્ટર મેનેજમેન્ટ</span>
+                        <span class="lang-en">Karigar Master Management</span>
+                    </h1>
+                    <p class="text-muted small mb-0">
+                        <span class="lang-hi">નયા કારીગર જોડો યા એડિટ/ડિલીટ કરો</span>
+                        <span class="lang-en">Add, edit or delete sewing artisans</span>
+                    </p>
+                </div>
+                <button type="button" onclick="lockMasterPages()" class="btn btn-outline-danger btn-sm fw-bold">
+                    🔒 <span class="lang-hi">લોક કરો</span><span class="lang-en">Lock</span>
+                </button>
+            </div>
+
+            <!-- Master Nav Pill Tabs -->
+            <div class="card-custom p-2 bg-light mb-3">
+                <div class="d-flex flex-wrap gap-1">
+                    <a asp-page="/Master/Items" class="btn btn-sm btn-outline-secondary">🏷️ Items</a>
+                    <a asp-page="/Master/Merchants" class="btn btn-sm btn-outline-secondary">🏢 Merchants</a>
+                    <a asp-page="/Master/Karigars" class="btn btn-sm btn-primary fw-bold">👥 Karigars</a>
+                    <a asp-page="/Master/CuttingMasters" class="btn btn-sm btn-outline-secondary">✂️ Cutting</a>
+                    <a asp-page="/Master/InterlockMasters" class="btn btn-sm btn-outline-secondary">🪡 Interlock</a>
+                </div>
+            </div>
+
+            <!-- Add / Edit Karigar Form -->
+            <div class="card-custom p-3 bg-white mb-3 shadow-sm border-primary border-opacity-25">
+                <form method="post" asp-page-handler="Save" class="row g-2">
+                    <input type="hidden" asp-for="NewKarigar.Id" id="karigarIdInput" value="0" />
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small fw-bold mb-1">
+                            <span class="lang-hi">કારીગર કા નામ *</span>
+                            <span class="lang-en">Artisan Name *</span>
+                        </label>
+                        <input asp-for="NewKarigar.Name" id="karigarNameInput" class="form-control form-control-lg fw-bold" 
+                               placeholder="e.g. Ramesh Kumar, Salim Ansari..." required />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-bold mb-1">
+                            <span class="lang-hi">ઉમ્ર</span>
+                            <span class="lang-en">Age</span>
+                        </label>
+                        <input asp-for="NewKarigar.Age" id="karigarAgeInput" type="number" min="14" max="99" class="form-control form-control-lg" placeholder="28" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-bold mb-1">
+                            <span class="lang-hi">રેટ (₹)</span>
+                            <span class="lang-en">Rate (₹)</span>
+                        </label>
+                        <input asp-for="NewKarigar.DefaultRate" id="karigarRateInput" type="number" step="0.5" class="form-control form-control-lg fw-bold text-success" placeholder="30" />
+                    </div>
+                    <div class="col-12 col-md-3 d-grid align-self-end">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold" id="karigarSubmitBtn">
+                            💾 <span class="lang-hi">સેવ કરો</span><span class="lang-en">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Karigars List Table -->
+            <div class="card-custom p-3 bg-white shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-0">
+                        <thead class="table-dark small">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>
+                                    <span class="lang-hi">કારીગર નામ</span><span class="lang-en">Artisan Name</span>
+                                </th>
+                                <th class="text-center" style="width: 80px;">
+                                    <span class="lang-hi">ઉમ્ર</span><span class="lang-en">Age</span>
+                                </th>
+                                <th class="text-end" style="width: 120px;">
+                                    <span class="lang-hi">ડિફોલ્ટ રેટ</span><span class="lang-en">Rate (₹)</span>
+                                </th>
+                                <th class="text-center" style="width: 130px;">
+                                    <span class="lang-hi">એક્શન</span><span class="lang-en">Action</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Karigars.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">No artisans found</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                int idx = 1;
+                                foreach (var k in Model.Karigars)
+                                {
+                                    <tr>
+                                        <td>@(idx++)</td>
+                                        <td class="fw-bold fs-6">@k.Name</td>
+                                        <td class="text-center">@(k.Age.HasValue ? k.Age.ToString() : "-")</td>
+                                        <td class="text-end fw-bold text-success">₹@k.DefaultRate.ToString("N2")</td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="editKarigar(@k.Id, '@k.Name', @(k.Age ?? 0), @k.DefaultRate)">
+                                                ✏️
+                                            </button>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@k.Id" class="d-inline" onsubmit="return confirm('Delete this karigar?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function editKarigar(id, name, age, rate) {
+            document.getElementById('karigarIdInput').value = id;
+            document.getElementById('karigarNameInput').value = name;
+            document.getElementById('karigarAgeInput').value = age > 0 ? age : '';
+            document.getElementById('karigarRateInput').value = rate;
+            document.getElementById('karigarNameInput').focus();
+            document.getElementById('karigarSubmitBtn').innerHTML = '✏️ Update';
+        }
+        function lockMasterPages() {
+            document.cookie = "master_passcode=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            sessionStorage.removeItem('master_unlocked');
+            window.location.reload();
+        }
+    </script>
+}

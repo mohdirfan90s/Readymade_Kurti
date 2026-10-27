@@ -1,0 +1,86 @@
+@page
+@model GarmentLotManager.Pages.BackupModel
+@{
+    ViewData["Title"] = "Data Backup";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-7">
+        <div class="mb-3">
+            <h1 class="h4 fw-bold mb-1">
+                💾 <span class="lang-hi">ડેટા બેકઅપ વ સુરક્ષા</span><span class="lang-en">Data Backup & Safety</span>
+            </h1>
+            <p class="text-muted small mb-0">
+                <span class="lang-hi">આપકા ડેટા આપકે કમ્પ્યુટર મેં હંમેશા સુરક્ષિત હૈ</span>
+                <span class="lang-en">Your business data is permanently saved on local disk</span>
+            </p>
+        </div>
+
+        <div class="card-custom p-4 bg-white mb-3 shadow-sm">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success fw-bold d-flex align-items-center justify-content-center fs-3" style="width: 52px; height: 52px;">
+                    🛡️
+                </div>
+                <div>
+                    <h2 class="h6 fw-bold mb-0 text-success">
+                        <span class="lang-hi">પરમાનેન્ટ SQLite ડેટાબેઝ એક્ટિવ હૈ</span>
+                        <span class="lang-en">Permanent SQLite Database Active</span>
+                    </h2>
+                    <div class="small text-muted">
+                        <span class="lang-hi">ડેટા SQLite ડેટાબેઝ મેં સુરક્ષિત હૈ (App_Data/garment.db)</span>
+                        <span class="lang-en">All records saved permanently in App_Data/garment.db</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2 text-center p-3 bg-light rounded-3">
+                <div class="col-6 border-end">
+                    <div class="text-muted small">
+                        <span class="lang-hi">સેવ કિયે ગયે લોટ</span><span class="lang-en">Saved Lots</span>
+                    </div>
+                    <div class="fw-bold fs-5 text-dark">@Model.TotalLotsCount</div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted small">
+                        <span class="lang-hi">કારીગર સંખ્યા</span><span class="lang-en">Total Artisans</span>
+                    </div>
+                    <div class="fw-bold fs-5 text-dark">@Model.TotalKarigarsCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-custom p-4 bg-white mb-3 shadow-sm">
+            <h2 class="h6 fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                <span>📥</span> 
+                <span class="lang-hi">1. ડેટા કા પૂરા બેકઅપ ડાઉનલોડ કરો</span>
+                <span class="lang-en">1. Download Complete Backup (Export)</span>
+            </h2>
+            <p class="text-muted small mb-3">
+                <span class="lang-hi">અપને સભી લોટ, કારીગર ઔર હિસાબ કી JSON ફાઇલ સેવ કરેં।</span>
+                <span class="lang-en">Download all business records to a single backup JSON file.</span>
+            </p>
+            <a asp-page-handler="Download" class="btn btn-primary fw-bold d-flex align-items-center justify-content-center gap-2 py-2">
+                <span>⬇️</span> 
+                <span class="lang-hi">બેકઅપ ફાઇલ ડાઉનલોડ કરો</span>
+                <span class="lang-en">Download Backup File (JSON)</span>
+            </a>
+        </div>
+
+        <div class="card-custom p-4 bg-white mb-3 shadow-sm">
+            <h2 class="h6 fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                <span>📤</span> 
+                <span class="lang-hi">2. પુરાના બેકઅપ રિસ્ટોર કરો</span>
+                <span class="lang-en">2. Restore Previous Backup (Import)</span>
+            </h2>
+            <form method="post" enctype="multipart/form-data" asp-page-handler="Import">
+                <div class="mb-3">
+                    <input type="file" asp-for="BackupFile" class="form-control" accept=".json" required />
+                </div>
+                <button type="submit" class="btn btn-outline-dark fw-bold w-100 py-2" onclick="return confirm('Restore this backup file?');">
+                    🔄 <span class="lang-hi">બેકઅપ રિસ્ટોર કરો</span>
+                    <span class="lang-en">Restore Data</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

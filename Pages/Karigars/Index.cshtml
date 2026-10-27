@@ -1,0 +1,98 @@
+@page
+@model GarmentLotManager.Pages.Karigars.IndexModel
+@{
+    ViewData["Title"] = "Karigar Master";
+}
+
+<!-- Top Heading -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 fw-bold mb-0">
+            👥 <span class="lang-hi">કારીગર ખાતા વ કમાઈ</span><span class="lang-en">Artisan Records</span>
+        </h1>
+        <p class="text-muted small mb-0">
+            <span class="lang-hi">સબ કારીગરોં કી કમાઈ ઔર સિયે ગયે પીસ કા હિસાબ</span>
+            <span class="lang-en">Artisan earnings and stitched pieces accounting</span>
+        </p>
+    </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="card-custom p-3 mb-3 bg-white shadow-sm">
+    <div class="row text-center g-2">
+        <div class="col-4 border-end">
+            <div class="text-muted small">
+                <span class="lang-hi">કુલ કારીગર</span><span class="lang-en">Total Artisans</span>
+            </div>
+            <div class="fw-bold fs-5 text-primary">@Model.KarigarList.Count</div>
+        </div>
+        <div class="col-4 border-end">
+            <div class="text-muted small">
+                <span class="lang-hi">કુલ સિયે ગયે પીસ</span><span class="lang-en">Total Pieces</span>
+            </div>
+            <div class="fw-bold fs-5 text-dark">@Model.KarigarList.Sum(k => k.TotalPieces).ToString("N0")</div>
+        </div>
+        <div class="col-4">
+            <div class="text-muted small">
+                <span class="lang-hi">કુલ મજદૂરી ભુગતાન</span><span class="lang-en">Total Wages</span>
+            </div>
+            <div class="fw-bold fs-5 text-success">₹@Model.KarigarList.Sum(k => k.TotalEarnings).ToString("N0")</div>
+        </div>
+    </div>
+</div>
+
+<!-- Karigar Cards -->
+<div class="row g-3">
+    @foreach (var item in Model.KarigarList)
+    {
+        var k = item.Karigar;
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card-custom p-3 bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                                @k.Name.Substring(0, 1)
+                            </div>
+                            <div>
+                                <h2 class="h6 fw-bold mb-0 text-dark">@k.Name</h2>
+                                <div class="small text-muted">
+                                    <span class="lang-hi">ઉમ્ર: <strong>@(k.Age.HasValue ? $"{k.Age} વર્ષ" : "-")</strong></span>
+                                    <span class="lang-en">Age: <strong>@(k.Age.HasValue ? $"{k.Age} yrs" : "-")</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-dark border">
+                            ₹@k.DefaultRate/<span class="lang-hi">પીસ</span><span class="lang-en">pc</span>
+                        </span>
+                    </div>
+
+                    <div class="row g-1 text-center small my-2">
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded-3 border">
+                                <div class="text-muted" style="font-size: 0.75rem;">
+                                    <span class="lang-hi">સિયે ગયે પીસ</span><span class="lang-en">Stitched Pcs</span>
+                                </div>
+                                <div class="fw-bold fs-6 text-dark">@item.TotalPieces.ToString("N0")</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded-3 border">
+                                <div class="text-muted" style="font-size: 0.75rem;">
+                                    <span class="lang-hi">કુલ કમાઈ</span><span class="lang-en">Total Earned</span>
+                                </div>
+                                <div class="fw-bold fs-6 text-success">₹@item.TotalEarnings.ToString("N0")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-top">
+                    <a asp-page="/Karigars/Ledger" asp-route-id="@k.Id" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                        📖 <span class="lang-hi">કામ કા ખાતા (પાસબુક) દેખો</span><span class="lang-en">View Passbook Ledger</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

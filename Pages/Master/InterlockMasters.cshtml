@@ -1,0 +1,158 @@
+@page
+@model GarmentLotManager.Pages.Master.InterlockMastersModel
+@{
+    ViewData["Title"] = "Manage Interlock Masters";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        @if (!Model.IsUnlocked)
+        {
+            <div class="card-custom p-4 p-md-5 bg-white text-center shadow">
+                <div class="fs-1 mb-2">🔐</div>
+                <h2 class="h5 fw-bold text-dark">
+                    <span class="lang-hi">માસ્ટર પેજ લોક હૈ</span>
+                    <span class="lang-en">Master Page Locked</span>
+                </h2>
+                <p class="text-muted small">
+                    <span class="lang-hi">યહ પેજ દેખને કે લિયે પાસકોડ ડાલો:</span>
+                    <span class="lang-en">Enter passcode to unlock:</span>
+                </p>
+                <form method="post" asp-page-handler="Unlock" class="mt-3">
+                    <div class="input-group input-group-lg mb-3">
+                        <span class="input-group-text bg-light">🔑</span>
+                        <input type="password" name="passcode" class="form-control text-center fw-bold" placeholder="Passcode (123abc)" autofocus required />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                        🔓 <span class="lang-hi">અનલોક કરો</span><span class="lang-en">Unlock</span>
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h1 class="h4 fw-bold mb-0 text-dark">
+                        🪡 <span class="lang-hi">ઇન્ટરલોક માસ્ટર મેનેજમેન્ટ</span>
+                        <span class="lang-en">Interlock Master Management</span>
+                    </h1>
+                    <p class="text-muted small mb-0">
+                        <span class="lang-hi">નયા ઇન્ટરલોક સેન્ટર જોડો યા એડિટ/ડિલીટ કરો</span>
+                        <span class="lang-en">Add, edit or delete interlock centers</span>
+                    </p>
+                </div>
+                <button type="button" onclick="lockMasterPages()" class="btn btn-outline-danger btn-sm fw-bold">
+                    🔒 <span class="lang-hi">લોક કરો</span><span class="lang-en">Lock</span>
+                </button>
+            </div>
+
+            <!-- Master Nav Pill Tabs -->
+            <div class="card-custom p-2 bg-light mb-3">
+                <div class="d-flex flex-wrap gap-1">
+                    <a asp-page="/Master/Items" class="btn btn-sm btn-outline-secondary">🏷️ Items</a>
+                    <a asp-page="/Master/Merchants" class="btn btn-sm btn-outline-secondary">🏢 Merchants</a>
+                    <a asp-page="/Master/Karigars" class="btn btn-sm btn-outline-secondary">👥 Karigars</a>
+                    <a asp-page="/Master/CuttingMasters" class="btn btn-sm btn-outline-secondary">✂️ Cutting</a>
+                    <a asp-page="/Master/InterlockMasters" class="btn btn-sm btn-primary fw-bold">🪡 Interlock</a>
+                </div>
+            </div>
+
+            <!-- Add / Edit Interlock Master Form -->
+            <div class="card-custom p-3 bg-white mb-3 shadow-sm border-primary border-opacity-25">
+                <form method="post" asp-page-handler="Save" class="row g-2">
+                    <input type="hidden" asp-for="NewInterlock.Id" id="interlockIdInput" value="0" />
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-bold mb-1">
+                            <span class="lang-hi">ઇન્ટરલોક વાલે કા નામ *</span>
+                            <span class="lang-en">Interlock Center Name *</span>
+                        </label>
+                        <input asp-for="NewInterlock.Name" id="interlockNameInput" class="form-control form-control-lg fw-bold" 
+                               placeholder="e.g. Babu Interlock, Raju Interlock..." required />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">
+                            <span class="lang-hi">1 પીસ કા રેટ (₹)</span>
+                            <span class="lang-en">Rate / pc (₹)</span>
+                        </label>
+                        <input asp-for="NewInterlock.DefaultRate" id="interlockRateInput" type="number" step="0.25" class="form-control form-control-lg fw-bold text-info" placeholder="2.00" />
+                    </div>
+                    <div class="col-6 col-md-3 d-grid align-self-end">
+                        <button type="submit" class="btn btn-info text-white btn-lg fw-bold" id="interlockSubmitBtn">
+                            💾 <span class="lang-hi">સેવ કરો</span><span class="lang-en">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Interlock Masters List Table -->
+            <div class="card-custom p-3 bg-white shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-0">
+                        <thead class="table-dark small">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>
+                                    <span class="lang-hi">ઇન્ટરલોક નામ</span><span class="lang-en">Name</span>
+                                </th>
+                                <th class="text-end" style="width: 130px;">
+                                    <span class="lang-hi">ડિફોલ્ટ રેટ</span><span class="lang-en">Rate (₹/pc)</span>
+                                </th>
+                                <th class="text-center" style="width: 130px;">
+                                    <span class="lang-hi">એક્શન</span><span class="lang-en">Action</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.InterlockMasters.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">No interlock centers found</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                int idx = 1;
+                                foreach (var i in Model.InterlockMasters)
+                                {
+                                    <tr>
+                                        <td>@(idx++)</td>
+                                        <td class="fw-bold fs-6">@i.Name</td>
+                                        <td class="text-end fw-bold text-info">₹@i.DefaultRate.ToString("N2")</td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="editInterlock(@i.Id, '@i.Name', @i.DefaultRate)">
+                                                ✏️
+                                            </button>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@i.Id" class="d-inline" onsubmit="return confirm('Delete this interlock center?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function editInterlock(id, name, rate) {
+            document.getElementById('interlockIdInput').value = id;
+            document.getElementById('interlockNameInput').value = name;
+            document.getElementById('interlockRateInput').value = rate;
+            document.getElementById('interlockNameInput').focus();
+            document.getElementById('interlockSubmitBtn').innerHTML = '✏️ Update';
+        }
+        function lockMasterPages() {
+            document.cookie = "master_passcode=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            sessionStorage.removeItem('master_unlocked');
+            window.location.reload();
+        }
+    </script>
+}

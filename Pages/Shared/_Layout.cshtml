@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="hi" data-lang="hi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e3a8a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>@ViewData["Title"] - Garment Lot Manager</title>
+    <!-- Prevent Language Flickering -->
+    <script>
+        (function() {
+            var savedLang = localStorage.getItem('garment_app_lang') || 'hi';
+            document.documentElement.setAttribute('data-lang', savedLang);
+            document.documentElement.setAttribute('lang', savedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- Top Header with Brand, Master Unlock & Global Language Toggle -->
+    <header class="app-header py-2 px-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <!-- App Brand (Clean & Optimized) -->
+            <a class="text-white text-decoration-none d-flex align-items-center gap-2" asp-page="/Index">
+                <span class="fs-4">🧵</span>
+                <span class="fw-bold fs-5 lh-1">
+                    <span class="lang-hi">ગારમેન્ટ લોટ મેનેજર</span>
+                    <span class="lang-en">Garment Lot Manager</span>
+                </span>
+            </a>
+
+            <!-- Right Controls: Global Language Toggle & New Lot -->
+            <div class="d-flex align-items-center gap-2">
+                <!-- Global Language Toggle Pill -->
+                <div class="lang-toggle-box" title="Switch Language">
+                    <button type="button" class="lang-btn active" id="btnLangHi" onclick="switchLanguage('hi')">
+                        ગુજરાતી
+                    </button>
+                    <button type="button" class="lang-btn" id="btnLangEn" onclick="switchLanguage('en')">
+                        English
+                    </button>
+                </div>
+
+                <!-- Desktop Action Buttons -->
+                <a asp-page="/Lots/Manage" class="btn btn-warning btn-sm fw-bold d-none d-md-inline-flex align-items-center gap-1 shadow-sm">
+                    <span>➕</span>
+                    <span class="lang-hi">નયા લોટ</span>
+                    <span class="lang-en">New Lot</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Desktop Secondary Navigation Bar -->
+    <div class="bg-white border-bottom shadow-sm d-none d-md-block mb-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <ul class="nav nav-pills py-2 gap-2">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "text-dark")" asp-page="/Index">
+                        📊 <span class="lang-hi">ડેશબોર્ડ</span><span class="lang-en">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Lots") == true && ViewContext.RouteData.Values["page"]?.ToString() != "/Lots/Manage" ? "active" : "text-dark")" asp-page="/Lots/Index">
+                        📦 <span class="lang-hi">સબ લોટ</span><span class="lang-en">All Lots</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Lots/Manage" ? "active" : "text-dark")" asp-page="/Lots/Manage">
+                        ➕ <span class="lang-hi">નયા લોટ</span><span class="lang-en">New Lot</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Karigars") == true ? "active" : "text-dark")" asp-page="/Karigars/Index">
+                        👥 <span class="lang-hi">કારીગર ખાતા</span><span class="lang-en">Karigar Ledger</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Backup" ? "active" : "text-dark")" asp-page="/Backup">
+                        💾 <span class="lang-hi">બેકઅપ</span><span class="lang-en">Backup</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Secret Master Management Menu (Visible ONLY when unlocked with 123abc) -->
+            <div id="masterUnlockedBar" style="display: none;">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-danger dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
+                        ⚙️ Master Pages (Unlocked)
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item fw-semibold" asp-page="/Master/Items">🏷️ Items (Add / Edit)</a></li>
+                        <li><a class="dropdown-item fw-semibold" asp-page="/Master/Merchants">🏢 Merchants (Add / Edit)</a></li>
+                        <li><a class="dropdown-item fw-semibold" asp-page="/Master/Karigars">👥 Karigars (Add / Edit)</a></li>
+                        <li><a class="dropdown-item fw-semibold" asp-page="/Master/CuttingMasters">✂️ Cutting Masters (Add / Edit)</a></li>
+                        <li><a class="dropdown-item fw-semibold" asp-page="/Master/InterlockMasters">🪡 Interlock Masters (Add / Edit)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger fw-bold" href="javascript:void(0)" onclick="lockMasterPages()">🔒 Lock Again (Hide)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container py-3">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2 mb-3" role="alert">
+                <span class="fs-5">✅</span>
+                <div class="fw-semibold">@TempData["SuccessMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2 mb-3" role="alert">
+                <span class="fs-5">⚠️</span>
+                <div class="fw-semibold">@TempData["ErrorMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @RenderBody()
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav">
+        <a asp-page="/Index" class="mobile-nav-item @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span class="lang-hi">હોમ</span>
+            <span class="lang-en">Home</span>
+        </a>
+        <a asp-page="/Lots/Index" class="mobile-nav-item @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Lots") == true && ViewContext.RouteData.Values["page"]?.ToString() != "/Lots/Manage" ? "active" : "")">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span class="lang-hi">લોટ સૂચી</span>
+            <span class="lang-en">Lots</span>
+        </a>
+        <a asp-page="/Karigars/Index" class="mobile-nav-item @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Karigars") == true ? "active" : "")">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span class="lang-hi">કારીગર</span>
+            <span class="lang-en">Karigars</span>
+        </a>
+        <a href="javascript:void(0)" onclick="openMasterModal()" class="mobile-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <span class="lang-hi">માસ્ટર</span>
+            <span class="lang-en">Master</span>
+        </a>
+    </nav>
+
+    <!-- Passcode Modal for Master Settings -->
+    <div class="modal fade" id="masterPasscodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content shadow border-0">
+                <div class="modal-header bg-dark text-white py-2">
+                    <h6 class="modal-title fw-bold">
+                        🔐 <span class="lang-hi">માસ્ટર સેટિંગ્સ પાસકોડ</span><span class="lang-en">Master Settings Passcode</span>
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <p class="small text-muted mb-2">
+                        <span class="lang-hi">આઇટમ, વ્યાપારી, કટિંગ, ઇન્ટરલોક મેનેજ કરને કે લિયે પાસકોડ ડાલો:</span>
+                        <span class="lang-en">Enter passcode to manage Items, Merchants, Cutting & Interlock:</span>
+                    </p>
+                    <input type="password" id="modalPasscodeInput" class="form-control form-control-lg text-center fw-bold mb-3" placeholder="Passcode (123abc)" autofocus />
+                    <div id="modalPasscodeError" class="text-danger small mb-2" style="display: none;">
+                        ⚠️ ગલત પાસકોડ! (Wrong passcode)
+                    </div>
+                    <button type="button" onclick="verifyMasterPasscode()" class="btn btn-primary w-100 fw-bold py-2">
+                        🔓 <span class="lang-hi">અનલોક કરો</span><span class="lang-en">Unlock</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr(".datepicker-field", {
+                    dateFormat: "d/m/Y",
+                    allowInput: true,
+                    disableMobile: true
+                });
+            }
+        });
+        function checkMasterUnlockStatus() {
+            const isUnlocked = document.cookie.includes("master_passcode=123abc") || sessionStorage.getItem('master_unlocked') === 'true';
+            const bar = document.getElementById('masterUnlockedBar');
+            if (bar) {
+                bar.style.display = isUnlocked ? 'block' : 'none';
+            }
+        }
+
+        function openMasterModal() {
+            const isUnlocked = document.cookie.includes("master_passcode=123abc") || sessionStorage.getItem('master_unlocked') === 'true';
+            if (isUnlocked) {
+                window.location.href = '/Master/Items';
+            } else {
+                const modal = new bootstrap.Modal(document.getElementById('masterPasscodeModal'));
+                document.getElementById('modalPasscodeInput').value = '';
+                document.getElementById('modalPasscodeError').style.display = 'none';
+                modal.show();
+            }
+        }
+
+        function verifyMasterPasscode() {
+            const val = document.getElementById('modalPasscodeInput').value.trim();
+            if (val === '123abc') {
+                document.cookie = "master_passcode=123abc; path=/; max-age=86400;";
+                sessionStorage.setItem('master_unlocked', 'true');
+                bootstrap.Modal.getInstance(document.getElementById('masterPasscodeModal')).hide();
+                checkMasterUnlockStatus();
+                window.location.href = '/Master/Items';
+            } else {
+                document.getElementById('modalPasscodeError').style.display = 'block';
+            }
+        }
+
+        function lockMasterPages() {
+            document.cookie = "master_passcode=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            sessionStorage.removeItem('master_unlocked');
+            window.location.href = '/Index';
+        }
+
+        document.addEventListener('DOMContentLoaded', checkMasterUnlockStatus);
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

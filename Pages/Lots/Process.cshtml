@@ -1,0 +1,531 @@
+@page "{id:int}"
+@model GarmentLotManager.Pages.Lots.ProcessModel
+@{
+    var lot = Model.LotItem;
+    ViewData["Title"] = $"Process Lot - {lot.LotNumber}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-page="/Lots/Index" class="btn btn-outline-secondary btn-sm">
+                ← <span class="lang-hi">સબ લોટ સૂચી</span><span class="lang-en">Back to Lots</span>
+            </a>
+            @if (lot.Status == "Ready")
+            {
+                <span class="badge bg-success fs-6 py-2 px-3">
+                    ✓ તૈયાર (Ready)
+                </span>
+            }
+        </div>
+
+        <!-- Compact Optimized Lot Summary Header Strip -->
+        <div class="card-custom px-3 py-2 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius: 12px;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-warning text-dark fw-bold px-2 py-1">@lot.LotNumber</span>
+                    <span class="small opacity-90">
+                        📅 @(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")
+                        @if (lot.EndDate.HasValue)
+                        {
+                            <span> → @lot.EndDate.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                    </span>
+                    <span class="opacity-50 d-none d-sm-inline">|</span>
+                    <span class="fw-bold">@lot.MerchantName</span>
+                </div>
+                <div>
+                    <span class="badge bg-success fw-bold px-2 py-1 fs-6">
+                        <span class="lang-hi">રકમ:</span><span class="lang-en">Rev:</span> ₹@lot.MerchantTotalRevenue.ToString("N0")
+                    </span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-1 border-top border-white border-opacity-15 mt-1 small">
+                <div class="text-truncate">
+                    <span>👕 @lot.ItemName</span>
+                    @if (!string.IsNullOrEmpty(lot.Color))
+                    {
+                        <span class="badge bg-white bg-opacity-25 ms-1">@lot.Color</span>
+                    }
+                </div>
+                <div class="fw-bold text-warning">
+                    @lot.TotalPieces <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span> @@ ₹@lot.MerchantRatePerPiece
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-7">
+                <!-- ✂️ STEP 1: CUTTING MASTER -->
+                <div class="card-custom p-3 p-md-4 mb-3 bg-white shadow-sm border-primary border-opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                            <span class="fs-5">✂️</span> 
+                            <span>1. <span class="lang-hi">કટિંગ માસ્ટર ઔર રેટ</span><span class="lang-en">Cutting Master & Rate</span></span>
+                        </h2>
+                        <span class="badge bg-light text-primary border fs-6">
+                            ₹@lot.CuttingTotalCost.ToString("N0")
+                        </span>
+                    </div>
+
+                    <form method="post" asp-page-handler="SaveCutting" asp-route-id="@lot.Id">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <span class="lang-hi">કટિંગ માસ્ટર ચુનો</span><span class="lang-en">Select Cutting Master</span>
+                                </label>
+                                <select name="cuttingMasterName" class="form-select fw-semibold" onchange="toggleCustomCutting(this.value)">
+                                    <option value="">-- Select Master --</option>
+                                    @foreach (var c in Model.CuttingMasters)
+                                    {
+                                        <option value="@c" selected="@(lot.CuttingMasterName == c)">@c</option>
+                                    }
+                                    <option value="NEW">➕ <span class="lang-hi">નયા કટિંગ માસ્ટર લીખો...</span><span class="lang-en">+ Add New Master...</span></option>
+                                </select>
+                                <div id="customCuttingBox" class="mt-1" style="display: none;">
+                                    <input type="text" name="customCuttingMaster" class="form-control form-control-sm" placeholder="Type cutting master name..." />
+                                </div>
+                            </div>
+                            <div class="col-7 col-md-3">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <span class="lang-hi">1 પીસ કા રેટ</span><span class="lang-en">Rate / pc</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="any" min="0" name="cuttingRate" id="cuttingRateInput" 
+                                           value="@(lot.CuttingRatePerPiece > 0 ? lot.CuttingRatePerPiece.ToString("0.##") : "")" 
+                                           placeholder="e.g. 2" class="form-control fw-bold" oninput="calcCutting()" />
+                                </div>
+                            </div>
+                            <div class="col-5 col-md-3 d-grid">
+                                <button type="submit" class="btn btn-primary fw-bold">
+                                    💾 <span class="lang-hi">સેવ કરો</span><span class="lang-en">Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-2 bg-light rounded-3 mt-2 small d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <span class="lang-hi">હિસાબ:</span><span class="lang-en">Calc:</span> 
+                                @lot.TotalPieces <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span> × <span id="cutRateText">₹@lot.CuttingRatePerPiece</span>
+                            </span>
+                            <span class="fw-bold text-danger fs-6" id="cutTotalText">₹@lot.CuttingTotalCost.ToString("N0")</span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 🪡 STEP 2: INTERLOCK MASTER -->
+                <div class="card-custom p-3 p-md-4 mb-3 bg-white shadow-sm border-info border-opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold text-info mb-0 d-flex align-items-center gap-2">
+                            <span class="fs-5">🪡</span> 
+                            <span>2. <span class="lang-hi">ઇન્ટરલોક કહાં કરાના હૈ ઔર રેટ</span><span class="lang-en">Interlock Center & Rate</span></span>
+                        </h2>
+                        <span class="badge bg-light text-info border fs-6">
+                            ₹@lot.InterlockTotalCost.ToString("N0")
+                        </span>
+                    </div>
+
+                    <form method="post" asp-page-handler="SaveInterlock" asp-route-id="@lot.Id">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <span class="lang-hi">ઇન્ટરલોક વાલા ચુનો</span><span class="lang-en">Select Interlock Center</span>
+                                </label>
+                                <select name="interlockMasterName" class="form-select fw-semibold" onchange="toggleCustomInterlock(this.value)">
+                                    <option value="">-- Select Center --</option>
+                                    @foreach (var i in Model.InterlockMasters)
+                                    {
+                                        <option value="@i" selected="@(lot.InterlockMasterName == i)">@i</option>
+                                    }
+                                    <option value="NEW">➕ <span class="lang-hi">નયા ઇન્ટરલોક સેન્ટર લીખો...</span><span class="lang-en">+ Add New Center...</span></option>
+                                </select>
+                                <div id="customInterlockBox" class="mt-1" style="display: none;">
+                                    <input type="text" name="customInterlockMaster" class="form-control form-control-sm" placeholder="Type interlock center name..." />
+                                </div>
+                            </div>
+                            <div class="col-7 col-md-3">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <span class="lang-hi">1 પીસ કા રેટ</span><span class="lang-en">Rate / pc</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="any" min="0" name="interlockRate" id="interlockRateInput" 
+                                           value="@(lot.InterlockRatePerPiece > 0 ? lot.InterlockRatePerPiece.ToString("0.##") : "")" 
+                                           placeholder="e.g. 2" class="form-control fw-bold" oninput="calcInterlock()" />
+                                </div>
+                            </div>
+                            <div class="col-5 col-md-3 d-grid">
+                                <button type="submit" class="btn btn-info text-white fw-bold">
+                                    💾 <span class="lang-hi">સેવ કરો</span><span class="lang-en">Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-2 bg-light rounded-3 mt-2 small d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <span class="lang-hi">હિસાબ:</span><span class="lang-en">Calc:</span> 
+                                @lot.TotalPieces <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span> × <span id="intRateText">₹@lot.InterlockRatePerPiece</span>
+                            </span>
+                            <span class="fw-bold text-danger fs-6" id="intTotalText">₹@lot.InterlockTotalCost.ToString("N0")</span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 🧵 STEP 3: KARIGAR STITCHING PIECES -->
+                <div class="card-custom p-3 p-md-4 mb-3 bg-white shadow-sm border-success border-opacity-25">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                        <h2 class="h6 fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                            <span class="fs-5">🧵</span> 
+                            <span>3. <span class="lang-hi">કારીગર સિલાઈ - કિસને કિતને પીસ સિયે</span><span class="lang-en">Karigar Stitching - Pieces Sewn</span></span>
+                        </h2>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        <span class="lang-hi">કારીગર કે નામ કે સામને બસ પીસ કી સંખ્યા ડાલો</span>
+                        <span class="lang-en">Enter pieces sewn directly next to artisan name</span>
+                    </p>
+
+                    <!-- Piece Allocation Counter -->
+                    <div class="p-2 rounded-3 mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                        <div>
+                            <span class="fw-bold">
+                                <span class="lang-hi">પીસ હિસાબ:</span><span class="lang-en">Piece Balance:</span>
+                            </span>
+                            <span>
+                                <span class="lang-hi">કુલ: <strong>@lot.TotalPieces</strong> | સિયે ગયે: <strong id="liveStitchedPcs">@lot.StitchedPiecesCount</strong></span>
+                                <span class="lang-en">Total: <strong>@lot.TotalPieces</strong> | Stitched: <strong id="liveStitchedPcsEn">@lot.StitchedPiecesCount</strong></span>
+                            </span>
+                        </div>
+                        <div id="liveStitchingBadge" class="piece-tracker-badge @(lot.RemainingPiecesCount == 0 ? "balanced" : "warning")">
+                            @if (lot.RemainingPiecesCount == 0)
+                            {
+                                <span class="lang-hi">✓ સબ @lot.TotalPieces પીસ પૂરે બાંટે ગયે</span>
+                                <span class="lang-en">✓ All @lot.TotalPieces Pieces Assigned</span>
+                            }
+                            else
+                            {
+                                <span class="lang-hi">બાકી બચે: <span id="liveRemainingPcs">@lot.RemainingPiecesCount</span> પીસ</span>
+                                <span class="lang-en">Remaining: <span id="liveRemainingPcsEn">@lot.RemainingPiecesCount</span> Pcs</span>
+                            }
+                        </div>
+                    </div>
+
+                    <form method="post" asp-page-handler="SaveStitching" asp-route-id="@lot.Id">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>
+                                            <span class="lang-hi">કારીગર નામ</span><span class="lang-en">Artisan Name</span>
+                                        </th>
+                                        <th style="width: 140px;">
+                                            <span class="lang-hi">સિયે ગયે પીસ</span><span class="lang-en">Pieces</span>
+                                        </th>
+                                        <th style="width: 110px;">
+                                            <span class="lang-hi">રેટ (₹)</span><span class="lang-en">Rate (₹)</span>
+                                        </th>
+                                        <th class="text-end" style="width: 120px;">
+                                            <span class="lang-hi">મજદૂરી (₹)</span><span class="lang-en">Amount (₹)</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int idx = 0; idx < Model.RegisteredKarigars.Count; idx++)
+                                    {
+                                        var k = Model.RegisteredKarigars[idx];
+                                        var entry = lot.StitchingEntries.FirstOrDefault(e => e.KarigarId == k.Id);
+                                        int pcs = entry?.PiecesCount ?? 0;
+                                        decimal rate = entry?.RatePerPiece ?? (k.DefaultRate > 0 ? k.DefaultRate : 30.00m);
+                                        decimal amt = pcs * rate;
+
+                                        <tr>
+                                            <td>
+                                                <input type="hidden" name="karigarIds" value="@k.Id" />
+                                                <div class="fw-bold text-dark">@k.Name</div>
+                                                <div class="small text-muted">
+                                                    @(k.Age.HasValue ? $"{k.Age} yrs" : "")
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" min="0" name="pieces" 
+                                                           value="@(pcs > 0 ? pcs.ToString() : "")" 
+                                                           class="form-control fw-bold karigar-pcs-input" data-index="@idx" oninput="calcStitchingRow(@idx)" placeholder="0" />
+                                                    <span class="input-group-text"><span class="lang-hi">પીસ</span><span class="lang-en">pcs</span></span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text">₹</span>
+                                                    <input type="number" min="0" step="0.5" name="rates" value="@rate" class="form-control karigar-rate-input" data-index="@idx" oninput="calcStitchingRow(@idx)" />
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold text-success" id="karigarAmt_@idx">
+                                                ₹@amt.ToString("N0")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="table-light fw-bold">
+                                    <tr>
+                                        <td>
+                                            <span class="lang-hi">સિલાઈ કુલ:</span><span class="lang-en">Stitching Total:</span>
+                                        </td>
+                                        <td id="liveTotalPcsFoot">@lot.StitchedPiecesCount <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span></td>
+                                        <td></td>
+                                        <td class="text-end text-danger fs-6" id="liveTotalStitchingCost">₹@lot.StitchingTotalCost.ToString("N0")</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="d-grid mt-2">
+                            <button type="submit" class="btn btn-success fw-bold py-2 fs-6 shadow-sm">
+                                💾 <span class="lang-hi">કારીગર સિલાઈ કા હિસાબ સેવ કરો</span>
+                                <span class="lang-en">Save Karigar Stitching</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side: Big Colorful Profit Card -->
+            <div class="col-12 col-lg-5">
+                <div class="card-custom p-4 bg-white shadow-sm sticky-top" style="top: 80px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 fw-bold text-dark mb-0">
+                            💰 <span class="lang-hi">પૂરા હિસાબ વ મુનાફા</span><span class="lang-en">Final Profit Statement</span>
+                        </h2>
+                        <span class="badge bg-success fs-6">
+                            @lot.ProfitMarginPercentage% <span class="lang-hi">લાભ</span><span class="lang-en">Margin</span>
+                        </span>
+                    </div>
+
+                    <div class="calculation-box mb-3">
+                        <!-- Revenue -->
+                        <div class="calc-row total-revenue py-2">
+                            <div>
+                                <div class="fw-bold fs-6">
+                                    <span class="lang-hi">વ્યાપારી સે મિલેંગે:</span><span class="lang-en">Merchant Revenue:</span>
+                                </div>
+                                <div class="small opacity-75">
+                                    (@lot.TotalPieces × ₹@lot.MerchantRatePerPiece)
+                                </div>
+                            </div>
+                            <span class="fs-4 fw-bold">₹@lot.MerchantTotalRevenue.ToString("N0")</span>
+                        </div>
+
+                        <!-- Cutting -->
+                        <div class="calc-row py-2">
+                            <div>
+                                <span class="fw-semibold">
+                                    ✂️ <span class="lang-hi">કટિંગ માસ્ટર:</span><span class="lang-en">Cutting:</span>
+                                </span>
+                                <div class="small text-muted">@lot.CuttingMasterName (@lot.TotalPieces × ₹@lot.CuttingRatePerPiece)</div>
+                            </div>
+                            <span class="fw-bold text-danger">₹@lot.CuttingTotalCost.ToString("N0")</span>
+                        </div>
+
+                        <!-- Interlock -->
+                        <div class="calc-row py-2">
+                            <div>
+                                <span class="fw-semibold">
+                                    🪡 <span class="lang-hi">ઇન્ટરલોક:</span><span class="lang-en">Interlock:</span>
+                                </span>
+                                <div class="small text-muted">@lot.InterlockMasterName (@lot.TotalPieces × ₹@lot.InterlockRatePerPiece)</div>
+                            </div>
+                            <span class="fw-bold text-danger">₹@lot.InterlockTotalCost.ToString("N0")</span>
+                        </div>
+
+                        <!-- Stitching -->
+                        <div class="calc-row py-2">
+                            <div>
+                                <span class="fw-semibold">
+                                    🧵 <span class="lang-hi">કારીગર સિલાઈ:</span><span class="lang-en">Karigar Stitching:</span>
+                                </span>
+                                <div class="small text-muted">@lot.StitchedPiecesCount <span class="lang-hi">પીસ સિયે ગયે</span><span class="lang-en">pcs stitched</span></div>
+                            </div>
+                            <span class="fw-bold text-danger">₹@lot.StitchingTotalCost.ToString("N0")</span>
+                        </div>
+
+                        <!-- Total Expense -->
+                        <div class="calc-row total-expense py-2 border-top">
+                            <span class="fw-bold">
+                                <span class="lang-hi">કુલ ખર્ચ:</span><span class="lang-en">Total Expense:</span>
+                            </span>
+                            <span class="fs-5 fw-bold">₹@lot.TotalExpense.ToString("N0")</span>
+                        </div>
+
+                        <!-- Net Profit -->
+                        <div class="calc-row net-profit py-3 mt-2">
+                            <div>
+                                <div class="small text-uppercase fw-bold">
+                                    <span class="lang-hi">મેરા શુદ્ધ મુનાફા (બચત)</span>
+                                    <span class="lang-en">My Net Profit</span>
+                                </div>
+                                <div class="fs-3 fw-bold">₹@lot.NetProfit.ToString("N0")</div>
+                            </div>
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                @lot.ProfitMarginPercentage%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const totalLotPieces = @lot.TotalPieces;
+
+        function toggleCustomCutting(val) {
+            const box = document.getElementById('customCuttingBox');
+            if (val === 'NEW') box.style.display = 'block';
+            else box.style.display = 'none';
+        }
+
+        function toggleCustomInterlock(val) {
+            const box = document.getElementById('customInterlockBox');
+            if (val === 'NEW') box.style.display = 'block';
+            else box.style.display = 'none';
+        }
+
+        function calcCutting() {
+            const rate = parseFloat(document.getElementById('cuttingRateInput').value) || 0;
+            const total = totalLotPieces * rate;
+            document.getElementById('cutRateText').innerText = '₹' + rate;
+            document.getElementById('cutTotalText').innerText = '₹' + total.toLocaleString('en-IN');
+        }
+
+        function calcInterlock() {
+            const rate = parseFloat(document.getElementById('interlockRateInput').value) || 0;
+            const total = totalLotPieces * rate;
+            document.getElementById('intRateText').innerText = '₹' + rate;
+            document.getElementById('intTotalText').innerText = '₹' + total.toLocaleString('en-IN');
+        }
+
+        function calcStitchingRow(idx) {
+            const pcsInputs = document.querySelectorAll('.karigar-pcs-input');
+            const rateInputs = document.querySelectorAll('.karigar-rate-input');
+
+            let totalAssigned = 0;
+            let totalStitchingAmt = 0;
+
+            pcsInputs.forEach((pcsInput, i) => {
+                const pcs = parseInt(pcsInput.value) || 0;
+                const rate = parseFloat(rateInputs[i].value) || 0;
+                const amt = pcs * rate;
+
+                const amtEl = document.getElementById(`karigarAmt_${i}`);
+                if (amtEl) amtEl.innerText = '₹' + amt.toLocaleString('en-IN');
+
+                totalAssigned += pcs;
+                totalStitchingAmt += amt;
+            });
+
+            const remaining = totalLotPieces - totalAssigned;
+            const currentLang = localStorage.getItem('garment_app_lang') || 'hi';
+
+            if (document.getElementById('liveStitchedPcs')) document.getElementById('liveStitchedPcs').innerText = totalAssigned;
+            if (document.getElementById('liveStitchedPcsEn')) document.getElementById('liveStitchedPcsEn').innerText = totalAssigned;
+            if (document.getElementById('liveRemainingPcs')) document.getElementById('liveRemainingPcs').innerText = remaining;
+            if (document.getElementById('liveRemainingPcsEn')) document.getElementById('liveRemainingPcsEn').innerText = remaining;
+            if (document.getElementById('liveTotalPcsFoot')) {
+                document.getElementById('liveTotalPcsFoot').innerText = `${totalAssigned} ${currentLang === 'en' ? 'pcs' : 'પીસ'}`;
+            }
+            if (document.getElementById('liveTotalStitchingCost')) {
+                document.getElementById('liveTotalStitchingCost').innerText = '₹' + totalStitchingAmt.toLocaleString('en-IN');
+            }
+
+            const badge = document.getElementById('liveStitchingBadge');
+            if (badge) {
+                if (remaining === 0 && totalLotPieces > 0) {
+                    badge.className = 'piece-tracker-badge balanced';
+                    badge.innerHTML = currentLang === 'en' ? `✓ All ${totalLotPieces} Pieces Assigned` : `✓ સબ ${totalLotPieces} પીસ પૂરે બાંટે ગયે`;
+                } else if (remaining > 0) {
+                    badge.className = 'piece-tracker-badge warning';
+                    badge.innerHTML = currentLang === 'en' ? `Remaining: ${remaining} Pcs` : `બાકી બચે: ${remaining} પીસ`;
+                } else {
+                    badge.className = 'piece-tracker-badge danger';
+                    badge.innerHTML = currentLang === 'en' ? `⚠️ ${Math.abs(remaining)} Pcs Over-allocated!` : `⚠️ ${Math.abs(remaining)} પીસ જ્યાદા બાંટ ગયે!`;
+                }
+            }
+        }
+
+        function shareWhatsApp() {
+            const currentLang = localStorage.getItem('garment_app_lang') || 'hi';
+            const lotNo = "@lot.LotNumber";
+            const date = "@(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")";
+            const vyapari = "@lot.MerchantName";
+            const pieces = "@lot.TotalPieces";
+            const vyapariRate = "@lot.MerchantRatePerPiece";
+            const totalVyapari = "@lot.MerchantTotalRevenue.ToString("N0")";
+            const cutting = "@lot.CuttingTotalCost.ToString("N0")";
+            const stitching = "@lot.StitchingTotalCost.ToString("N0")";
+            const interlock = "@lot.InterlockTotalCost.ToString("N0")";
+            const totalExp = "@lot.TotalExpense.ToString("N0")";
+            const profit = "@lot.NetProfit.ToString("N0")";
+
+            let msg = `*🧵 લોટ હિસાબ પરચી*\n`;
+            msg += `લોટ: ${lotNo}\n`;
+            msg += `તારીખ: ${date}\n`;
+            msg += `વ્યાપારી: ${vyapari}\n`;
+            msg += `કુલ પીસ: ${pieces} (ભાવ: ₹${vyapariRate}/pc)\n\n`;
+            msg += `💰 *વ્યાપારી સે મિલેંગે:* ₹${totalVyapari}\n`;
+            msg += `✂️ કટિંગ માસ્ટર: ₹${cutting}\n`;
+            msg += `🧵 સિલાઈ: ₹${stitching}\n`;
+            msg += `🪡 ઇન્ટરલોક: ₹${interlock}\n`;
+            msg += `📦 *કુલ ખર્ચ:* ₹${totalExp}\n`;
+            msg += `📈 *મેરા મુનાફા:* ₹${profit}\n\n`;
+            msg += `_ગારમેન્ટ લોટ મેનેજર_`;
+
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function openReadyModal() {
+            const modal = new bootstrap.Modal(document.getElementById('markReadyModal'));
+            modal.show();
+        }
+    </script>
+
+    <!-- Mark Ready Modal -->
+    <div class="modal fade" id="markReadyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content shadow border-0">
+                <form method="post" asp-page-handler="MarkReady" asp-route-id="@lot.Id">
+                    <div class="modal-header bg-success text-white py-2">
+                        <h6 class="modal-title fw-bold">
+                            ✅ <span class="lang-hi">લોટ તૈયાર માર્ક કરો</span><span class="lang-en">Mark Lot Ready</span>
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="text-center mb-2">
+                            <span class="badge bg-dark fs-6">@lot.LotNumber</span>
+                        </div>
+                        <label class="form-label small fw-bold text-dark mb-1">
+                            📅 <span class="lang-hi">ખતમ તારીખ (એન્ડ ડેટ):</span><span class="lang-en">Completion Date:</span>
+                        </label>
+                        <input type="text" name="readyEndDate" id="readyEndDateInput" 
+                               class="form-control form-control-lg fw-semibold datepicker-field text-center" 
+                               placeholder="dd/mm/yyyy" 
+                               value="@DateTime.Today.ToString("dd/MM/yyyy")" required />
+                    </div>
+                    <div class="modal-footer p-2 d-flex justify-content-between">
+                        <button type="button" class="btn btn-light btn-sm border" data-bs-dismiss="modal">
+                            <span class="lang-hi">રદ્દ કરો</span><span class="lang-en">Cancel</span>
+                        </button>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold px-3">
+                            ✅ <span class="lang-hi">હા, તૈયાર હો ગયા</span><span class="lang-en">Confirm Ready</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

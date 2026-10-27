@@ -1,0 +1,124 @@
+@page "{id:int?}"
+@model GarmentLotManager.Pages.Karigars.ManageModel
+@{
+    bool isEdit = Model.KarigarItem.Id > 0;
+    ViewData["Title"] = isEdit ? $"Edit Karigar" : "Add Karigar";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <!-- Back Link & Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a asp-page="/Karigars/Index" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
+                    ← <span class="lang-hi">सभी कारीगरों पर वापस जाएं</span><span class="lang-en">Back to Karigars</span>
+                </a>
+                <h1 class="h4 fw-bold mb-0 mt-1">
+                    @if (isEdit)
+                    {
+                        <span>✏️ <span class="lang-hi">कारीगर एडिट करें</span><span class="lang-en">Edit Artisan</span></span>
+                    }
+                    else
+                    {
+                        <span>👤 <span class="lang-hi">नया कारीगर जोड़ें</span><span class="lang-en">Add New Artisan</span></span>
+                    }
+                </h1>
+                <p class="text-muted small mb-0">
+                    <span class="lang-hi">नाम, उम्र, मोबाइल व सिलाई का रेट भरें</span>
+                    <span class="lang-en">Enter name, age, phone and sewing rate per piece</span>
+                </p>
+            </div>
+        </div>
+
+        <form method="post">
+            <input type="hidden" asp-for="KarigarItem.Id" />
+            <input type="hidden" asp-for="KarigarItem.CreatedAt" />
+
+            <div class="card-custom p-4 bg-white mb-3">
+                <div class="mb-3">
+                    <label asp-for="KarigarItem.Name" class="form-label small fw-semibold">
+                        <span class="lang-hi">कारीगर का नाम *</span>
+                        <span class="lang-en">Artisan Name *</span>
+                    </label>
+                    <input asp-for="KarigarItem.Name" class="form-control form-control-lg fw-bold" 
+                           data-hi-placeholder="उदा. सलीम अंसारी, रमेश कुमार..." 
+                           data-en-placeholder="e.g. Salim Ansari, Ramesh Kumar..." 
+                           placeholder="उदा. सलीम अंसारी, रमेश कुमार..." required autofocus />
+                    <span asp-validation-for="KarigarItem.Name" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label asp-for="KarigarItem.Age" class="form-label small fw-semibold">
+                            <span class="lang-hi">उम्र</span>
+                            <span class="lang-en">Age</span>
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="KarigarItem.Age" type="number" min="14" max="99" class="form-control" 
+                                   data-hi-placeholder="उदा. 28" data-en-placeholder="e.g. 28" placeholder="उदा. 28" />
+                            <span class="input-group-text bg-light small">
+                                <span class="lang-hi">वर्ष</span><span class="lang-en">yrs</span>
+                            </span>
+                        </div>
+                        <span asp-validation-for="KarigarItem.Age" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="KarigarItem.Phone" class="form-label small fw-semibold">
+                            <span class="lang-hi">मोबाइल नंबर</span>
+                            <span class="lang-en">Mobile Number</span>
+                        </label>
+                        <input asp-for="KarigarItem.Phone" class="form-control" 
+                               data-hi-placeholder="उदा. 9876543210" data-en-placeholder="e.g. 9876543210" placeholder="उदा. 9876543210" />
+                        <span asp-validation-for="KarigarItem.Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3 p-3 bg-light rounded-3 border">
+                    <label asp-for="KarigarItem.DefaultRate" class="form-label small fw-semibold text-primary">
+                        💰 <span class="lang-hi">सिलाई की दर (प्रति पीस ₹ रेट) *</span>
+                        <span class="lang-en">Default Sewing Rate (₹ per piece) *</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white fw-bold">₹</span>
+                        <input asp-for="KarigarItem.DefaultRate" type="number" step="0.5" min="0" class="form-control fs-5 fw-bold text-success" required />
+                        <span class="input-group-text bg-white small">
+                            <span class="lang-hi">/ प्रति पीस</span>
+                            <span class="lang-en">/ per piece</span>
+                        </span>
+                    </div>
+                    <div class="form-text small">
+                        <span class="lang-hi">लॉट में सिलाई बांटते समय यह रेट अपने-आप आ जाएगा (उदा. ₹30/पीस)</span>
+                        <span class="lang-en">Default piece rate loaded automatically when assigning lot pieces (e.g. ₹30/pc)</span>
+                    </div>
+                    <span asp-validation-for="KarigarItem.DefaultRate" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="KarigarItem.Notes" class="form-label small fw-semibold">
+                        <span class="lang-hi">विशेषता / कारीगर का हुनर / नोट</span>
+                        <span class="lang-en">Specialty / Skills / Notes</span>
+                    </label>
+                    <textarea asp-for="KarigarItem.Notes" class="form-control" rows="2" 
+                              data-hi-placeholder="उदा. शर्ट कॉलर व कफ स्पेशलिस्ट, ओवरलॉक, स्पीड दर्जी..." 
+                              data-en-placeholder="e.g. Collar & cuff specialist, overlock, speed tailor..." 
+                              placeholder="उदा. शर्ट कॉलर व कफ स्पेशलिस्ट, ओवरलॉक, स्पीड दर्जी..."></textarea>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success fw-bold py-2 fs-6 shadow-sm">
+                        💾 <span class="lang-hi">कारीगर सुरक्षित करें</span>
+                        <span class="lang-en">Save Artisan</span>
+                    </button>
+                    <a asp-page="/Karigars/Index" class="btn btn-outline-secondary btn-sm">
+                        <span class="lang-hi">रद्द करें</span>
+                        <span class="lang-en">Cancel</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

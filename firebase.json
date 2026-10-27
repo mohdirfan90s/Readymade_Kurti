@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": "wwwroot",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "garment-lot-manager",
+          "region": "asia-south1"
+        }
+      }
+    ]
+  }
+}

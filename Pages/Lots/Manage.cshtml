@@ -1,0 +1,212 @@
+@page "{id:int?}"
+@model GarmentLotManager.Pages.Lots.ManageModel
+@{
+    bool isEdit = Model.LotItem.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Lot" : "Create Lot";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-page="/Lots/Index" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
+                ← <span class="lang-hi">લોટ સૂચી પર વાપસ જાઓ</span><span class="lang-en">Back to Lots</span>
+            </a>
+            <span class="badge bg-primary fs-6 px-3 py-1">
+                <span class="lang-hi">કદમ 1: નયા લોટ</span><span class="lang-en">Step 1: New Lot</span>
+            </span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="LotItem.Id" />
+            <input type="hidden" asp-for="LotItem.LotNumber" />
+            <input type="hidden" asp-for="LotItem.PhotoUrl" />
+            <input type="hidden" asp-for="LotItem.CuttingMasterName" />
+            <input type="hidden" asp-for="LotItem.CuttingRatePerPiece" />
+            <input type="hidden" asp-for="LotItem.InterlockMasterName" />
+            <input type="hidden" asp-for="LotItem.InterlockRatePerPiece" />
+            <input type="hidden" asp-for="LotItem.Status" />
+
+            <div class="card-custom p-4 bg-white shadow-sm mb-3">
+                <div class="text-center mb-3 pb-2 border-bottom">
+                    <h1 class="h4 fw-bold text-dark mb-1">
+                        📦 <span class="lang-hi">નયા લોટ દર્જ કરો</span><span class="lang-en">Create New Lot</span>
+                    </h1>
+                    <p class="text-muted small mb-0">
+                        <span class="lang-hi">સિર્ફ જરૂરી બાતેં ભરેં ઔર માલ દર્જ કરેં</span>
+                        <span class="lang-en">Enter details to create the lot</span>
+                    </p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger p-2 mb-3 small shadow-sm">
+                        <div class="fw-bold mb-1">⚠️ કૃપયા નિમ્નલિખિત બાતેં સહી કરેં:</div>
+                        <ul class="mb-0 ps-3">
+                            @foreach (var modelState in ViewData.ModelState.Values)
+                            {
+                                foreach (var error in modelState.Errors)
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- 1. Start Date (Side-by-Side) -->
+                <div class="row align-items-center mb-3">
+                    <label class="col-sm-4 col-form-label fw-bold text-dark">
+                        📅 <span class="lang-hi">શરૂઆત તારીખ *</span><span class="lang-en">Start Date *</span>
+                    </label>
+                    <div class="col-sm-8">
+                        <input type="text" asp-for="StartDateStr" class="form-control form-control-lg fw-semibold datepicker-field" 
+                               placeholder="dd/mm/yyyy" autocomplete="off" required />
+                        <span asp-validation-for="StartDateStr" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- 2. વેપારી (Merchant Name - List selection in English) -->
+                <div class="mb-3">
+                    <label asp-for="LotItem.MerchantName" class="form-label fw-bold text-dark mb-1">
+                        👤 <span class="lang-hi">વેપારી *</span><span class="lang-en">Vepari (Merchant) *</span>
+                    </label>
+                    <select asp-for="LotItem.MerchantName" id="merchantSelect" class="form-select form-select-lg fw-bold" onchange="toggleCustomMerchant(this.value)">
+                        <option value="">-- Select Merchant --</option>
+                        @foreach (var m in Model.MerchantList)
+                        {
+                            <option value="@m" selected="@(Model.LotItem.MerchantName == m)">@m</option>
+                        }
+                        <option value="NEW">➕ Add New Merchant...</option>
+                    </select>
+
+                    <div id="customMerchantBox" class="mt-2" style="display: none;">
+                        <input type="text" asp-for="CustomMerchantName" id="customMerchantInput" class="form-control" 
+                               placeholder="Type new merchant name..." />
+                    </div>
+                    <span asp-validation-for="LotItem.MerchantName" class="text-danger small"></span>
+                </div>
+
+                <!-- 3. માલ (Item - List selection in English) -->
+                <div class="mb-3">
+                    <label asp-for="LotItem.ItemName" class="form-label fw-bold text-dark mb-1">
+                        👕 <span class="lang-hi">માલ *</span><span class="lang-en">Maal (Item) *</span>
+                    </label>
+                    <select asp-for="LotItem.ItemName" id="itemSelect" class="form-select form-select-lg fw-bold" onchange="toggleCustomItem(this.value)">
+                        <option value="">-- Select Item --</option>
+                        @foreach (var it in Model.ItemList)
+                        {
+                            <option value="@it" selected="@(Model.LotItem.ItemName == it)">@it</option>
+                        }
+                        <option value="NEW">➕ Add Other Item...</option>
+                    </select>
+
+                    <div id="customItemBox" class="mt-2" style="display: none;">
+                        <input type="text" asp-for="CustomItemName" id="customItemInput" class="form-control" 
+                               placeholder="Type new item name..." />
+                    </div>
+                </div>
+
+                <!-- 4. કલર (Side-by-Side, No Optional Caption) -->
+                <div class="row align-items-center mb-3">
+                    <label asp-for="LotItem.Color" class="col-sm-4 col-form-label fw-bold text-dark">
+                        🎨 <span class="lang-hi">કલર</span><span class="lang-en">Color</span>
+                    </label>
+                    <div class="col-sm-8">
+                        <input asp-for="LotItem.Color" value="@(string.IsNullOrEmpty(Model.LotItem.Color) ? "" : Model.LotItem.Color)" class="form-control form-control-lg fw-semibold" 
+                               placeholder="e.g. Navy Blue, Black, White..." />
+                    </div>
+                </div>
+
+                <!-- 5. कितने पीस बनेंगे और एक पीस का क्या भाव मिलेगा (NO default pre-filled values!) -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label asp-for="LotItem.TotalPieces" class="form-label fw-bold text-dark mb-1">
+                            ✂️ <span class="lang-hi">કિતને પીસ બનેંગે? *</span><span class="lang-en">Total Pieces *</span>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <input asp-for="LotItem.TotalPieces" id="totalPcsInput" type="number" min="1" 
+                                   value="@(Model.LotItem.TotalPieces > 0 ? Model.LotItem.TotalPieces.ToString() : "")" 
+                                   class="form-control fw-bold text-primary" placeholder="e.g. 450" required oninput="updateLiveCalc()" />
+                            <span class="input-group-text bg-light small">
+                                <span class="lang-hi">પીસ</span><span class="lang-en">Pcs</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label asp-for="LotItem.MerchantRatePerPiece" class="form-label fw-bold text-dark mb-1">
+                            💰 <span class="lang-hi">એક પીસ કા ભાવ *</span><span class="lang-en">Rate / Pc *</span>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light fw-bold">₹</span>
+                            <input asp-for="LotItem.MerchantRatePerPiece" id="rateInput" type="number" step="any" min="0" 
+                                   value="@(Model.LotItem.MerchantRatePerPiece > 0 ? Model.LotItem.MerchantRatePerPiece.ToString("0.##") : "")" 
+                                   class="form-control fw-bold text-success" placeholder="e.g. 50" required oninput="updateLiveCalc()" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clean Calculation Box -->
+                <div class="p-3 rounded-3 mb-3 text-center" style="background: #f0fdf4; border: 1px solid #86efac;">
+                    <div class="text-muted small">
+                        <span class="lang-hi">વ્યાપારી સે મિલને વાલી કુલ રકમ:</span>
+                        <span class="lang-en">Total Receivable from Merchant:</span>
+                    </div>
+                    <div class="fw-bold fs-3 text-success" id="liveTotalRevenue">₹0</div>
+                </div>
+
+                <!-- Photo (Side-by-Side, No Optional Caption) -->
+                <div class="row align-items-center mb-3">
+                    <label class="col-sm-4 col-form-label fw-bold text-dark">
+                        📷 <span class="lang-hi">ફોટો</span><span class="lang-en">Photo</span>
+                    </label>
+                    <div class="col-sm-8">
+                        <input type="file" asp-for="PhotoFile" class="form-control" accept="image/*" capture="environment" />
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3 fs-5 shadow">
+                        ➡️ <span class="lang-hi">લોટ સેવ કરો ઔર કામ શુરૂ કરો</span>
+                        <span class="lang-en">Save Lot & Proceed to Work</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleCustomMerchant(val) {
+            const box = document.getElementById('customMerchantBox');
+            if (val === 'NEW') {
+                box.style.display = 'block';
+                document.getElementById('customMerchantInput').focus();
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function toggleCustomItem(val) {
+            const box = document.getElementById('customItemBox');
+            if (val === 'NEW') {
+                box.style.display = 'block';
+                document.getElementById('customItemInput').focus();
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function updateLiveCalc() {
+            const pcs = parseInt(document.getElementById('totalPcsInput').value) || 0;
+            const rate = parseFloat(document.getElementById('rateInput').value) || 0;
+            const total = pcs * rate;
+            document.getElementById('liveTotalRevenue').innerText = '₹' + total.toLocaleString('en-IN');
+        }
+
+        document.addEventListener('DOMContentLoaded', updateLiveCalc);
+    </script>
+}

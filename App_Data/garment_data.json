@@ -1,0 +1,201 @@
+{
+  "Karigars": [
+    {
+      "Id": 3,
+      "Name": "Abdul Kalam",
+      "Age": 40,
+      "Phone": "9876543212",
+      "DefaultRate": 30,
+      "Notes": "Finishing \u0026 Stitching",
+      "CreatedAt": "2026-10-24T16:57:48.430117+05:30"
+    },
+    {
+      "Id": 4,
+      "Name": "Dinesh Verma",
+      "Age": 25,
+      "Phone": "9876543213",
+      "DefaultRate": 30,
+      "Notes": "Speed Worker",
+      "CreatedAt": "2026-10-24T16:57:48.4301172+05:30"
+    },
+    {
+      "Id": 6,
+      "Name": "Imran Sheikh",
+      "Age": 29,
+      "Phone": "9876543215",
+      "DefaultRate": 30,
+      "Notes": "All-Rounder Worker",
+      "CreatedAt": "2026-10-24T16:57:48.4301175+05:30"
+    },
+    {
+      "Id": 5,
+      "Name": "Raees Ahmed",
+      "Age": 31,
+      "Phone": "9876543214",
+      "DefaultRate": 30,
+      "Notes": "Quality Stitching",
+      "CreatedAt": "2026-10-24T16:57:48.4301173+05:30"
+    },
+    {
+      "Id": 1,
+      "Name": "Ramesh Kumar",
+      "Age": 28,
+      "Phone": "9876543210",
+      "DefaultRate": 30,
+      "Notes": "Master Tailor",
+      "CreatedAt": "2026-10-24T16:57:48.4288651+05:30"
+    },
+    {
+      "Id": 2,
+      "Name": "Salim Ansari",
+      "Age": 34,
+      "Phone": "9876543211",
+      "DefaultRate": 30,
+      "Notes": "Stitching Specialist",
+      "CreatedAt": "2026-10-24T16:57:48.4301152+05:30"
+    }
+  ],
+  "Lots": [
+    {
+      "Id": 1,
+      "LotNumber": "Lot #1",
+      "StartDate": "2026-10-05T00:00:00",
+      "EndDate": null,
+      "MerchantName": "Aman Creations",
+      "MerchantPhone": null,
+      "ItemName": "Both (Shirt \u002B Pant)",
+      "Color": "Blue",
+      "PhotoUrl": null,
+      "TotalPieces": 450,
+      "MerchantRatePerPiece": 90,
+      "CuttingMasterName": "",
+      "CuttingRatePerPiece": 0,
+      "InterlockMasterName": "",
+      "InterlockRatePerPiece": 0,
+      "OtherExpense": 0,
+      "OtherExpenseNote": null,
+      "Status": "In Progress",
+      "Notes": null,
+      "StitchingEntries": [],
+      "StitchedPiecesCount": 0,
+      "RemainingPiecesCount": 450,
+      "MerchantTotalRevenue": 40500,
+      "CuttingTotalCost": 0,
+      "StitchingTotalCost": 0,
+      "InterlockTotalCost": 0,
+      "TotalExpense": 0,
+      "NetProfit": 40500,
+      "ProfitMarginPercentage": 100
+    }
+  ],
+  "MasterItems": [
+    {
+      "Id": 4,
+      "Name": "Both (Shirt \u002B Pant)"
+    },
+    {
+      "Id": 5,
+      "Name": "Kurti"
+    },
+    {
+      "Id": 3,
+      "Name": "Pant"
+    },
+    {
+      "Id": 2,
+      "Name": "Plazo"
+    },
+    {
+      "Id": 1,
+      "Name": "Shirt"
+    },
+    {
+      "Id": 6,
+      "Name": "T-Shirt"
+    }
+  ],
+  "MasterMerchants": [
+    {
+      "Id": 5,
+      "Name": "Aman Creations",
+      "Phone": "9820044556",
+      "Notes": null
+    },
+    {
+      "Id": 3,
+      "Name": "Balaji Textiles",
+      "Phone": "9820098765",
+      "Notes": null
+    },
+    {
+      "Id": 1,
+      "Name": "Gupta Garments",
+      "Phone": "9820012345",
+      "Notes": null
+    },
+    {
+      "Id": 2,
+      "Name": "R.K. Brothers",
+      "Phone": "9820054321",
+      "Notes": null
+    },
+    {
+      "Id": 4,
+      "Name": "Sanjay Trading",
+      "Phone": "9820011223",
+      "Notes": null
+    }
+  ],
+  "MasterCuttingMasters": [
+    {
+      "Id": 4,
+      "Name": "Javed Master",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 2,
+      "Name": "Master Akram",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 1,
+      "Name": "Master Aslam",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 3,
+      "Name": "Rasheed Cutting",
+      "DefaultRate": 2,
+      "Phone": null
+    }
+  ],
+  "MasterInterlocks": [
+    {
+      "Id": 4,
+      "Name": "Alam Interlock",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 1,
+      "Name": "Babu Interlock",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 2,
+      "Name": "Raju Interlock",
+      "DefaultRate": 2,
+      "Phone": null
+    },
+    {
+      "Id": 3,
+      "Name": "Star Interlock",
+      "DefaultRate": 2,
+      "Phone": null
+    }
+  ]
+}

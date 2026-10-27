@@ -1,0 +1,257 @@
+@page "{id:int}"
+@model GarmentLotManager.Pages.Lots.DetailsModel
+@{
+    var lot = Model.LotItem;
+    ViewData["Title"] = $"Invoice Slip - {lot.LotNumber}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-9">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+            <a asp-page="/Lots/Index" class="btn btn-outline-secondary btn-sm">
+                ← <span class="lang-hi">સબ લોટ સૂચી</span><span class="lang-en">Back to Lots</span>
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" onclick="window.print()" class="btn btn-dark btn-sm fw-bold d-flex align-items-center gap-1">
+                    <span>🖨️</span> 
+                    <span class="lang-hi">પ્રિન્ટ / PDF</span><span class="lang-en">Print / PDF</span>
+                </button>
+                <a asp-page="/Lots/Process" asp-route-id="@lot.Id" class="btn btn-success btn-sm fw-bold">
+                    🛠️ <span class="lang-hi">કામ / હિસાબ બદલો</span><span class="lang-en">Process Work</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Printable Invoice Container -->
+        <div class="card-custom bg-white p-4 p-md-5 invoice-container shadow-sm">
+            <!-- Invoice Header -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                <div>
+                    <h2 class="h4 fw-bold text-primary mb-1">
+                        🧵 <span class="lang-hi">ગારમેન્ટ લોટ હિસાબ પરચી</span><span class="lang-en">Garment Lot Statement</span>
+                    </h2>
+                    <div class="text-muted small">
+                        <span class="lang-hi">સિલાઈ, કટિંગ, ઇન્ટરલોક વ મુનાફા કા હિસાબ</span>
+                        <span class="lang-en">Stitching, cutting, interlock & net profit statement</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-dark fs-6">
+                        <span class="lang-hi">લોટ:</span><span class="lang-en">Lot:</span> @lot.LotNumber
+                    </span>
+                    <div class="small text-muted mt-1">
+                        <span class="lang-hi">શરૂઆત:</span><span class="lang-en">Start:</span> <strong>@(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")</strong>
+                        @if (lot.EndDate.HasValue)
+                        {
+                            <span> | <span class="lang-hi">ખતમ:</span><span class="lang-en">End:</span> <strong>@lot.EndDate.Value.ToString("dd/MM/yyyy")</strong></span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Merchant & Item Meta Grid -->
+            <div class="row g-3 mb-4 p-3 bg-light rounded-3">
+                <div class="col-12 col-md-4">
+                    <div class="text-muted small">
+                        <span class="lang-hi">વ્યાપારી (કિસ્કા માલ હૈ):</span><span class="lang-en">Merchant:</span>
+                    </div>
+                    <div class="fw-bold fs-6 text-dark">@lot.MerchantName</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">
+                        <span class="lang-hi">કપડા / આઇટમ:</span><span class="lang-en">Item / Fabric:</span>
+                    </div>
+                    <div class="fw-bold fs-6">@lot.ItemName</div>
+                    <div class="small text-muted mt-1">
+                        <span class="lang-hi">રંગ: <strong>@lot.Color</strong></span>
+                        <span class="lang-en">Color: <strong>@lot.Color</strong></span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 text-md-end">
+                    <div class="text-muted small">
+                        <span class="lang-hi">કુલ પીસ વ વ્યાપારી ભાવ:</span><span class="lang-en">Pieces & Rate:</span>
+                    </div>
+                    <div class="fw-bold fs-5 text-success">@lot.TotalPieces <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span> @@ ₹@lot.MerchantRatePerPiece</div>
+                    <div class="small text-muted">
+                        <span class="lang-hi">કુલ પ્રાપ્તિ:</span><span class="lang-en">Total Revenue:</span> 
+                        <strong>₹@lot.MerchantTotalRevenue.ToString("N0")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo if Available -->
+            @if (!string.IsNullOrEmpty(lot.PhotoUrl))
+            {
+                <div class="mb-4 text-center">
+                    <img src="@lot.PhotoUrl" alt="@lot.LotNumber" class="rounded-3 border shadow-sm" style="max-height: 200px; object-fit: contain;" />
+                </div>
+            }
+
+            <!-- 1. कारीगर सिलाई विवरण तालिका -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 fw-bold text-dark mb-0">
+                        🧵 1. <span class="lang-hi">કારીગર સિલાઈ બાંટવારા</span><span class="lang-en">Stitching Labour Distribution</span>
+                    </h3>
+                    <span class="badge bg-light text-dark border">
+                        <span class="lang-hi">સિયે ગયે: @lot.StitchedPiecesCount / @lot.TotalPieces પીસ</span>
+                        <span class="lang-en">Stitched: @lot.StitchedPiecesCount / @lot.TotalPieces pcs</span>
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-1">
+                        <thead class="table-dark small">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>
+                                    <span class="lang-hi">કારીગર નામ</span><span class="lang-en">Artisan Name</span>
+                                </th>
+                                <th class="text-center" style="width: 120px;">
+                                    <span class="lang-hi">પીસ</span><span class="lang-en">Pieces</span>
+                                </th>
+                                <th class="text-end" style="width: 130px;">
+                                    <span class="lang-hi">રેટ (₹)</span><span class="lang-en">Rate (₹)</span>
+                                </th>
+                                <th class="text-end" style="width: 150px;">
+                                    <span class="lang-hi">કુલ રકમ (₹)</span><span class="lang-en">Amount (₹)</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!lot.StitchingEntries.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">No artisans recorded</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                int idx = 1;
+                                foreach (var entry in lot.StitchingEntries)
+                                {
+                                    <tr>
+                                        <td>@(idx++)</td>
+                                        <td class="fw-semibold">@entry.KarigarName</td>
+                                        <td class="text-center fw-bold">@entry.PiecesCount</td>
+                                        <td class="text-end">₹@entry.RatePerPiece.ToString("N2")</td>
+                                        <td class="text-end fw-bold text-success">₹@entry.TotalAmount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="2" class="text-end">
+                                    <span class="lang-hi">સિલાઈ કુલ:</span><span class="lang-en">Stitching Total:</span>
+                                </td>
+                                <td class="text-center">@lot.StitchedPiecesCount <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span></td>
+                                <td></td>
+                                <td class="text-end text-danger fs-6">₹@lot.StitchingTotalCost.ToString("N0")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. कटिंग व इंटरलॉक विवरण -->
+            <div class="mb-4">
+                <h3 class="h6 fw-bold text-dark mb-2">
+                    ✂️ 2. <span class="lang-hi">કટિંગ ઔર ઇન્ટરલોક ખર્ચ</span><span class="lang-en">Cutting & Interlock Costs</span>
+                </h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-1">
+                        <thead class="table-light small">
+                            <tr>
+                                <th><span class="lang-hi">કામ</span><span class="lang-en">Task</span></th>
+                                <th><span class="lang-hi">નામ</span><span class="lang-en">Name</span></th>
+                                <th class="text-center"><span class="lang-hi">કુલ પીસ</span><span class="lang-en">Pieces</span></th>
+                                <th class="text-end"><span class="lang-hi">રેટ (₹)</span><span class="lang-en">Rate (₹)</span></th>
+                                <th class="text-end"><span class="lang-hi">કુલ રકમ (₹)</span><span class="lang-en">Total (₹)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">✂️ <span class="lang-hi">કટિંગ માસ્ટર</span><span class="lang-en">Cutting</span></td>
+                                <td>@lot.CuttingMasterName</td>
+                                <td class="text-center fw-bold">@lot.TotalPieces</td>
+                                <td class="text-end">₹@lot.CuttingRatePerPiece.ToString("N2")</td>
+                                <td class="text-end fw-bold text-danger">₹@lot.CuttingTotalCost.ToString("N0")</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">🪡 <span class="lang-hi">ઇન્ટરલોક</span><span class="lang-en">Interlock</span></td>
+                                <td>@lot.InterlockMasterName</td>
+                                <td class="text-center fw-bold">@lot.TotalPieces</td>
+                                <td class="text-end">₹@lot.InterlockRatePerPiece.ToString("N2")</td>
+                                <td class="text-end fw-bold text-danger">₹@lot.InterlockTotalCost.ToString("N0")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. सम्पूर्ण आय, खर्च व मुनाफा सारांश -->
+            <div class="p-3 rounded-3 border mb-4" style="background: #f8fafc;">
+                <h3 class="h6 fw-bold text-dark mb-3">
+                    📊 <span class="lang-hi">અંતિમ હિસાબ વ મુનાફા સારાંશ</span><span class="lang-en">Final Accounting Summary</span>
+                </h3>
+                
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <div class="text-muted small">
+                                <span class="lang-hi">વ્યાપારી સે મિલને વાલી રકમ:</span>
+                                <span class="lang-en">Receivable from Merchant:</span>
+                            </div>
+                            <div class="fw-bold fs-4 text-success">
+                                ₹@lot.MerchantTotalRevenue.ToString("N0")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <div class="text-muted small">
+                                <span class="lang-hi">કુલ ખર્ચ:</span>
+                                <span class="lang-en">Total Manufacturing Expenses:</span>
+                            </div>
+                            <div class="fw-bold fs-4 text-danger">
+                                ₹@lot.TotalExpense.ToString("N0")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 p-3 bg-success bg-opacity-10 border border-success rounded-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-success fs-4">
+                            <span class="lang-hi">મેરા શુદ્ધ મુનાફા:</span>
+                            <span class="lang-en">My Net Profit:</span> 
+                            ₹@lot.NetProfit.ToString("N0")
+                        </div>
+                        <div class="small text-muted">
+                            <span class="lang-hi">લાભ પ્રતિશત:</span><span class="lang-en">Profit Margin:</span> 
+                            <strong>@lot.ProfitMarginPercentage%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signature Line for Print -->
+            <div class="row pt-5 mt-4 text-center print-only" style="display: none;">
+                <div class="col-6">
+                    <div class="border-top pt-2">
+                        <span class="lang-hi">કારીગર હસ્તાક્ષર</span>
+                        <span class="lang-en">Artisan Signature</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border-top pt-2">
+                        <span class="lang-hi">મેનેજર / પ્રોપ્રાઇટર</span>
+                        <span class="lang-en">Proprietor / Manager</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

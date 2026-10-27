@@ -1,0 +1,383 @@
+@page
+@model GarmentLotManager.Pages.Lots.IndexModel
+@{
+    ViewData["Title"] = Model.ShowDiscarded ? "Canceled Lots" : "All Lots";
+}
+
+<!-- Top Heading & Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 fw-bold mb-0">
+            📦 <span class="lang-hi">@(Model.ShowDiscarded ? "રદ્દ લોટ (Canceled)" : "સબ લોટ સૂચી")</span>
+            <span class="lang-en">@(Model.ShowDiscarded ? "Canceled Lots" : "All Lots")</span>
+        </h1>
+        <p class="text-muted small mb-0">
+            <span class="lang-hi">વ્યાપારી, તારીખ, કટિંગ, સિલાઈ ઔર મુનાફા</span>
+            <span class="lang-en">Lots, merchants, dates, stitching and profit</span>
+        </p>
+    </div>
+    <a asp-page="/Lots/Manage" class="btn btn-primary fw-bold d-flex align-items-center gap-1 shadow-sm">
+        <span>➕</span> 
+        <span class="lang-hi">નયા લોટ</span>
+        <span class="lang-en">New Lot</span>
+    </a>
+</div>
+
+<!-- Tabs: Active Lots vs Canceled Lots -->
+<div class="d-flex gap-2 mb-3">
+    <a asp-page="/Lots/Index" asp-route-ShowDiscarded="false" 
+       class="btn btn-sm @(!Model.ShowDiscarded ? "btn-dark fw-bold" : "btn-light border") rounded-pill px-3 py-2">
+        📦 <span class="lang-hi">સક્રિય લોટ</span><span class="lang-en">Active Lots</span>
+    </a>
+    <a asp-page="/Lots/Index" asp-route-ShowDiscarded="true" 
+       class="btn btn-sm @(Model.ShowDiscarded ? "btn-danger text-white fw-bold" : "btn-light border text-muted") rounded-pill px-3 py-2">
+        🚫 <span class="lang-hi">રદ્દ (Canceled)</span><span class="lang-en">Canceled</span>
+    </a>
+</div>
+
+<!-- Search & Filter Card (Default: Date Range + Lot Number; Advanced: Merchant, Item, Color) -->
+<div class="card-custom p-3 mb-3 bg-white border shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="fw-bold text-dark small d-flex align-items-center gap-1">
+            <span>🔍</span>
+            <span class="lang-hi">લોટ ખુજો (સર્ચ)</span>
+            <span class="lang-en">Search Lots</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            @if (Model.HasFilter)
+            {
+                <a asp-page="/Lots/Index" asp-route-ShowDiscarded="@Model.ShowDiscarded" class="badge bg-danger-subtle text-danger text-decoration-none fw-semibold">
+                    ✕ <span class="lang-hi">ફિલ્ટર હટાઓ</span><span class="lang-en">Clear Filter</span>
+                </a>
+            }
+            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" 
+                    data-bs-toggle="collapse" data-bs-target="#advancedFilterCollapse" 
+                    aria-expanded="@(Model.IsAdvancedFilterActive ? "true" : "false")">
+                ⚙️ <span class="lang-hi">એડવાન્સ સર્ચ</span><span class="lang-en">Advanced Search</span>
+            </button>
+        </div>
+    </div>
+
+    <form method="get">
+        <input type="hidden" name="ShowDiscarded" value="@Model.ShowDiscarded.ToString().ToLower()" />
+
+        <!-- Default Search: Date Range + Lot Number -->
+        <div class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-muted mb-1 fw-semibold">
+                    📅 <span class="lang-hi">શરૂઆત તારીખ:</span><span class="lang-en">From Date:</span>
+                </label>
+                <input type="text" name="FromDateStr" value="@Model.FromDateStr" 
+                       class="form-control form-control-sm datepicker-field" 
+                       placeholder="dd/mm/yyyy" autocomplete="off" />
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-muted mb-1 fw-semibold">
+                    📅 <span class="lang-hi">ખતમ તારીખ:</span><span class="lang-en">To Date:</span>
+                </label>
+                <input type="text" name="ToDateStr" value="@Model.ToDateStr" 
+                       class="form-control form-control-sm datepicker-field" 
+                       placeholder="dd/mm/yyyy" autocomplete="off" />
+            </div>
+            <div class="col-8 col-md-4">
+                <label class="form-label small text-muted mb-1 fw-semibold">
+                    🏷️ <span class="lang-hi">લોટ નંબર:</span><span class="lang-en">Lot Number:</span>
+                </label>
+                <input type="text" name="LotNumber" value="@Model.LotNumber" 
+                       class="form-control form-control-sm" 
+                       placeholder="e.g. Lot #1..." />
+            </div>
+            <div class="col-4 col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary btn-sm fw-bold py-2">
+                    🔍 <span class="lang-hi">ખોજો</span><span class="lang-en">Search</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Advanced Search Section (Collapsed by default, opens if active or clicked) -->
+        <div class="collapse @(Model.IsAdvancedFilterActive ? "show" : "") mt-3 pt-3 border-top" id="advancedFilterCollapse">
+            <div class="row g-2 align-items-end">
+                <!-- Merchant Dropdown -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1 fw-semibold">
+                        👤 <span class="lang-hi">વેપારી (Merchant):</span><span class="lang-en">Merchant:</span>
+                    </label>
+                    <select name="SelectedMerchant" class="form-select form-select-sm fw-semibold">
+                        <option value="">-- All Merchants --</option>
+                        @foreach (var m in Model.MerchantList)
+                        {
+                            <option value="@m" selected="@(Model.SelectedMerchant == m)">@m</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Item Dropdown -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1 fw-semibold">
+                        👕 <span class="lang-hi">માલ (Item):</span><span class="lang-en">Item:</span>
+                    </label>
+                    <select name="SelectedItem" class="form-select form-select-sm fw-semibold">
+                        <option value="">-- All Items --</option>
+                        @foreach (var it in Model.ItemList)
+                        {
+                            <option value="@it" selected="@(Model.SelectedItem == it)">@it</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Color Text Input -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1 fw-semibold">
+                        🎨 <span class="lang-hi">કલર:</span><span class="lang-en">Color:</span>
+                    </label>
+                    <input type="text" name="SearchColor" value="@Model.SearchColor" 
+                           class="form-control form-control-sm" 
+                           placeholder="e.g. Navy Blue, Black, White..." />
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.HasFilter)
+    {
+        <div class="mt-2 pt-2 border-top small text-primary d-flex align-items-center justify-content-between">
+            <div>
+                ℹ️ <span class="lang-hi">ફિલ્ટર લાગુ છે:</span><span class="lang-en">Filter active:</span> 
+                <strong>@Model.Lots.Count</strong> 
+                <span class="lang-hi">લોટ મિલે</span><span class="lang-en">lots found</span>
+            </div>
+            <a asp-page="/Lots/Index" asp-route-ShowDiscarded="@Model.ShowDiscarded" class="text-danger small text-decoration-none fw-bold">
+                ✕ <span class="lang-hi">સાફ કરો</span><span class="lang-en">Clear</span>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Lot Cards -->
+@if (!Model.Lots.Any())
+{
+    <div class="card-custom p-5 text-center bg-white">
+        <div class="fs-1 mb-2">📦</div>
+        <h5 class="fw-bold">
+            <span class="lang-hi">@(Model.ShowDiscarded ? "કોઈ રદ્દ (Canceled) લોટ નથી" : "કોઈ લોટ નહીં મિલા")</span>
+            <span class="lang-en">@(Model.ShowDiscarded ? "No Canceled Lots" : "No Lots Found")</span>
+        </h5>
+        @if (Model.HasFilter)
+        {
+            <div class="mt-2">
+                <a asp-page="/Lots/Index" asp-route-ShowDiscarded="@Model.ShowDiscarded" class="btn btn-outline-secondary btn-sm fw-bold">
+                    🔄 <span class="lang-hi">ફિલ્ટર હટાઓ</span><span class="lang-en">Clear Filter</span>
+                </a>
+            </div>
+        }
+        else if (!Model.ShowDiscarded)
+        {
+            <a asp-page="/Lots/Manage" class="btn btn-primary fw-bold mt-2">
+                ➕ <span class="lang-hi">પહેલા લોટ બનાઓ</span><span class="lang-en">Create First Lot</span>
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var lot in Model.Lots)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card-custom p-3 bg-white h-100 d-flex flex-column justify-content-between shadow-sm border">
+                    <div>
+                        <!-- Header Line with Start Date & End Date (dd/mm/yyyy) -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-dark fs-6 fw-bold">@lot.LotNumber</span>
+                                <span class="badge bg-light text-dark border ms-1 fw-semibold">
+                                    @(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")
+                                    @if (lot.EndDate.HasValue)
+                                    {
+                                        <span> → @lot.EndDate.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="text-end">
+                                @if (lot.Status == "Ready")
+                                {
+                                    <span class="badge bg-success fw-bold px-2 py-1">
+                                        ✓ તૈયાર (Ready)
+                                    </span>
+                                }
+                                else if (lot.Status == "Discarded")
+                                {
+                                    <span class="badge bg-secondary fw-bold px-2 py-1">
+                                        🚫 Canceled
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-column align-items-end gap-1">
+                                        <span class="badge bg-warning text-dark fw-bold">
+                                            ⏳ In Progress
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-success fw-bold px-2 py-1 shadow-sm" 
+                                                onclick="openReadyModal(@lot.Id, '@lot.LotNumber')">
+                                            ✅ <span class="lang-hi">તૈયાર</span><span class="lang-en">Ready</span>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Main Lot Content -->
+                        <div class="d-flex gap-3 my-2 align-items-center">
+                            @if (!string.IsNullOrEmpty(lot.PhotoUrl))
+                            {
+                                <img src="@lot.PhotoUrl" alt="@lot.LotNumber" class="rounded-3 border flex-shrink-0" style="width: 68px; height: 68px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 68px; height: 68px;">
+                                    <span class="fs-3">👕</span>
+                                </div>
+                            }
+
+                            <div class="flex-grow-1 overflow-hidden">
+                                <h6 class="fw-bold mb-1 text-truncate text-dark">
+                                    @lot.ItemName @(!string.IsNullOrEmpty(lot.Color) ? $"({lot.Color})" : "")
+                                </h6>
+                                <div class="small text-muted text-truncate">
+                                    <span class="lang-hi">વ્યાપારી:</span><span class="lang-en">Merchant:</span> 
+                                    <strong class="text-dark">@lot.MerchantName</strong>
+                                </div>
+                                <div class="small text-primary fw-bold mt-1">
+                                    <span class="lang-hi">કુલ: @lot.TotalPieces પીસ @@ ₹@lot.MerchantRatePerPiece</span>
+                                    <span class="lang-en">Total: @lot.TotalPieces pcs @@ ₹@lot.MerchantRatePerPiece</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Snapshot (Stitched & Remaining Pieces REMOVED as requested) -->
+                        <div class="row g-1 text-center small my-2">
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">વ્યાપારી સે</span><span class="lang-en">Revenue</span>
+                                    </div>
+                                    <div class="fw-bold text-success">₹@lot.MerchantTotalRevenue.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">કુલ ખર્ચ</span><span class="lang-en">Expense</span>
+                                    </div>
+                                    <div class="fw-bold text-danger">₹@lot.TotalExpense.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">મુનાફા</span><span class="lang-en">Profit</span>
+                                    </div>
+                                    <div class="fw-bold text-primary">₹@lot.NetProfit.ToString("N0")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar (Cancel & Restore Icon-only with confirmation, WhatsApp Share added) -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 mt-2 border-top gap-1">
+                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                            <a asp-page="/Lots/Process" asp-route-id="@lot.Id" class="btn btn-success btn-sm fw-bold">
+                                🛠️ <span class="lang-hi">કટિંગ / સિલાઈ</span><span class="lang-en">Process</span>
+                            </a>
+                            <a asp-page="/Lots/Details" asp-route-id="@lot.Id" class="btn btn-outline-primary btn-sm fw-bold">
+                                🧾 <span class="lang-hi">પરચી</span><span class="lang-en">Slip</span>
+                            </a>
+                            <a asp-page="/Lots/Manage" asp-route-id="@lot.Id" class="btn btn-light btn-sm border" title="Edit Lot">
+                                ✏️
+                            </a>
+                            <button type="button" onclick="shareLotWhatsApp('@lot.LotNumber', '@(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")', '@lot.MerchantName', '@lot.ItemName', '@lot.Color', '@lot.TotalPieces', '@lot.MerchantRatePerPiece', '@lot.MerchantTotalRevenue.ToString("N0")', '@lot.TotalExpense.ToString("N0")', '@lot.NetProfit.ToString("N0")', '@lot.Status')" 
+                                    class="btn btn-outline-success btn-sm px-2 d-inline-flex align-items-center justify-content-center" title="Share on WhatsApp">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16">
+                                    <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.016-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="d-flex gap-1 align-items-center">
+                            @if (lot.Status == "Discarded")
+                            {
+                                <form method="post" asp-page-handler="Restore" asp-route-id="@lot.Id" onsubmit="return confirm('Are you sure you want to restore this canceled lot? / શું તમે આ રદ્દ થયેલ લોટ ફરી સક્રિય કરવા માંગો છો?');">
+                                    <button type="submit" class="btn btn-outline-success btn-sm px-2 d-inline-flex align-items-center justify-content-center" style="height: 31px;" title="Restore Lot (વાપસ લાવો)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+                                            <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            }
+                            else if (lot.Status != "Ready")
+                            {
+                                <form method="post" asp-page-handler="Discard" asp-route-id="@lot.Id" onsubmit="return confirm('Are you sure you want to cancel this lot? / શું તમે આ લોટ રદ્દ (Cancel) કરવા માંગો છો?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm px-2 d-inline-flex align-items-center justify-content-center" style="height: 31px;" title="Cancel Lot (રદ્દ કરો)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Mark Ready Modal -->
+<div class="modal fade" id="markReadyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow border-0">
+            <form method="post" asp-page-handler="MarkReady">
+                <input type="hidden" id="readyLotId" name="id" value="0" />
+                <div class="modal-header bg-success text-white py-2">
+                    <h6 class="modal-title fw-bold">
+                        ✅ <span class="lang-hi">લોટ તૈયાર માર્ક કરો</span><span class="lang-en">Mark Lot Ready</span>
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="text-center mb-2">
+                        <span class="badge bg-dark fs-6" id="readyLotNumberBadge">Lot</span>
+                    </div>
+                    <label class="form-label small fw-bold text-dark mb-1">
+                        📅 <span class="lang-hi">ખતમ તારીખ (એન્ડ ડેટ):</span><span class="lang-en">Completion Date:</span>
+                    </label>
+                    <input type="text" name="readyEndDate" id="readyEndDateInput" 
+                           class="form-control form-control-lg fw-semibold datepicker-field text-center" 
+                           placeholder="dd/mm/yyyy" 
+                           value="@DateTime.Today.ToString("dd/MM/yyyy")" required />
+                </div>
+                <div class="modal-footer p-2 d-flex justify-content-between">
+                    <button type="button" class="btn btn-light btn-sm border" data-bs-dismiss="modal">
+                        <span class="lang-hi">રદ્દ કરો</span><span class="lang-en">Cancel</span>
+                    </button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold px-3">
+                        ✅ <span class="lang-hi">હા, તૈયાર હો ગયા</span><span class="lang-en">Confirm Ready</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openReadyModal(lotId, lotNumber) {
+            document.getElementById('readyLotId').value = lotId;
+            document.getElementById('readyLotNumberBadge').innerText = lotNumber;
+            const modal = new bootstrap.Modal(document.getElementById('markReadyModal'));
+            modal.show();
+        }
+    </script>
+}

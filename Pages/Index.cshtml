@@ -1,0 +1,304 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Welcome Bar (Mobile Compact) -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <span>📊</span> 
+            <span class="lang-hi">ગારમેન્ટ લોટ ડેશબોર્ડ</span>
+            <span class="lang-en">Garment Lot Dashboard</span>
+        </h1>
+        <p class="text-muted small mb-0 d-none d-sm-block">
+            <span class="lang-hi">વ્યાપારી, કટિંગ, સિલાઈ, ઇન્ટરલોક વ મુનાફા કા હિસાબ</span>
+            <span class="lang-en">Lots, cutting, stitching, interlock and net profit summary</span>
+        </p>
+    </div>
+</div>
+
+<!-- Date Range Search & Filter Card (Clean Datepickers with dd/mm/yyyy placeholder) -->
+<div class="card-custom bg-white p-3 mb-3 border shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="fw-bold text-dark small d-flex align-items-center gap-1">
+            <span>📅</span>
+            <span class="lang-hi">તારીખ અનુસાર હિસાબ ખુજો</span>
+            <span class="lang-en">Search by Date Range</span>
+        </div>
+        @if (Model.HasDateFilter)
+        {
+            <a asp-page="/Index" class="badge bg-danger-subtle text-danger text-decoration-none fw-semibold">
+                ✕ <span class="lang-hi">ફિલ્ટર હટાઓ</span><span class="lang-en">Clear Filter</span>
+            </a>
+        }
+    </div>
+
+    <!-- Date Range Form in ONE LINE (From Date, To Date & Filter Button) -->
+    <form method="get" class="d-flex align-items-center gap-1 gap-sm-2 flex-nowrap">
+        <div class="flex-grow-1" style="min-width: 0;">
+            <input type="text" name="FromDateStr" class="form-control form-control-sm datepicker-field text-center px-1" 
+                   value="@Model.FromDateStr" 
+                   placeholder="From: dd/mm/yyyy" autocomplete="off" title="From Date" />
+        </div>
+        <span class="text-muted small fw-bold px-1">→</span>
+        <div class="flex-grow-1" style="min-width: 0;">
+            <input type="text" name="ToDateStr" class="form-control form-control-sm datepicker-field text-center px-1" 
+                   value="@Model.ToDateStr" 
+                   placeholder="To: dd/mm/yyyy" autocomplete="off" title="To Date" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm fw-bold text-nowrap d-flex align-items-center gap-1 px-2 px-sm-3" style="min-height: 38px;" title="Filter Data">
+            <span>🔍</span>
+            <span class="lang-hi d-none d-sm-inline">ફિલ્ટર</span>
+            <span class="lang-en d-none d-sm-inline">Filter</span>
+        </button>
+        @if (Model.HasDateFilter)
+        {
+            <a asp-page="/Index" class="btn btn-outline-secondary btn-sm fw-bold px-2" style="min-height: 38px; display: inline-flex; align-items: center;" title="Clear Filter">
+                🔄
+            </a>
+        }
+    </form>
+
+    @if (Model.HasDateFilter)
+    {
+        <div class="mt-2 pt-2 border-top small text-primary d-flex align-items-center justify-content-between">
+            <div>
+                ℹ️ <span class="lang-hi">ફિલ્ટર લાગુ:</span><span class="lang-en">Filter active:</span>
+                <strong>@(Model.FromDate?.ToString("dd/MM/yyyy") ?? "Start")</strong>
+                <span class="lang-hi"> સે </span><span class="lang-en"> to </span>
+                <strong>@(Model.ToDate?.ToString("dd/MM/yyyy") ?? "End")</strong>
+            </div>
+            <div class="badge bg-primary text-white">
+                @Model.Summary.TotalLots <span class="lang-hi">લોટ મિલે</span><span class="lang-en">Lots</span>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 4 Main KPI Cards (Vibrant, soft on eyes, high contrast) -->
+<div class="row g-2 g-md-3 mb-3">
+    <!-- Merchant Revenue (Vibrant Emerald) -->
+    <div class="col-6 col-lg-3">
+        <div class="stat-card revenue h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">
+                        <span class="lang-hi">વ્યાપારી સે મિલેંગે</span>
+                        <span class="lang-en">Merchant Total</span>
+                    </div>
+                    <div class="stat-value">₹@Model.Summary.TotalRevenue.ToString("N0")</div>
+                </div>
+                <span class="fs-4 d-none d-sm-inline opacity-75">💰</span>
+            </div>
+            <div class="small mt-1 mt-sm-2 opacity-90">
+                <span class="lang-hi">કુલ @Model.Summary.TotalPieces.ToString("N0") પીસ</span>
+                <span class="lang-en">@Model.Summary.TotalPieces.ToString("N0") Pcs</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Expenses (Vibrant Coral Rose) -->
+    <div class="col-6 col-lg-3">
+        <div class="stat-card expense h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">
+                        <span class="lang-hi">કુલ ખર્ચ</span>
+                        <span class="lang-en">Total Expense</span>
+                    </div>
+                    <div class="stat-value">₹@Model.Summary.TotalExpense.ToString("N0")</div>
+                </div>
+                <span class="fs-4 d-none d-sm-inline opacity-75">✂️</span>
+            </div>
+            <div class="small mt-1 mt-sm-2 opacity-90">
+                <span class="lang-hi">સમસ્ત ખર્ચ</span>
+                <span class="lang-en">All Expenses</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net Profit (Vibrant Royal Indigo) -->
+    <div class="col-6 col-lg-3">
+        <div class="stat-card profit h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">
+                        <span class="lang-hi">શુદ્ધ મુનાફા (બચત)</span>
+                        <span class="lang-en">Net Profit</span>
+                    </div>
+                    <div class="stat-value">₹@Model.Summary.TotalProfit.ToString("N0")</div>
+                </div>
+                <span class="fs-4 d-none d-sm-inline opacity-75">📈</span>
+            </div>
+            <div class="small mt-1 mt-sm-2 opacity-90">
+                @(Model.Summary.TotalRevenue > 0 ? $"{(Model.Summary.TotalProfit / Model.Summary.TotalRevenue * 100):0.1}%" : "0%") 
+                <span class="lang-hi">લાભ માર્જિન</span><span class="lang-en">Margin</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Lots (Vibrant Amethyst Violet) -->
+    <div class="col-6 col-lg-3">
+        <div class="stat-card lots h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">
+                        <span class="lang-hi">કુલ લોટ</span>
+                        <span class="lang-en">Total Lots</span>
+                    </div>
+                    <div class="stat-value">@Model.Summary.TotalLots</div>
+                </div>
+                <span class="fs-4 d-none d-sm-inline opacity-75">📦</span>
+            </div>
+            <div class="small mt-1 mt-sm-2 opacity-90">
+                <span class="lang-hi">કારીગર: @Model.Summary.TotalKarigars</span>
+                <span class="lang-en">Artisans: @Model.Summary.TotalKarigars</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent / Filtered Lots Section (Easy to Read Table) -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h6 fw-bold mb-0 d-flex align-items-center gap-1">
+        <span>📦</span> 
+        @if (Model.HasDateFilter)
+        {
+            <span class="lang-hi">ફિલ્ટર કિયે ગયે લોટ (@Model.RecentLots.Count)</span>
+            <span class="lang-en">Filtered Lots (@Model.RecentLots.Count)</span>
+        }
+        else
+        {
+            <span class="lang-hi">હાલ કે લોટ</span>
+            <span class="lang-en">Recent Lots</span>
+        }
+    </h2>
+    <a asp-page="/Lots/Index" class="btn btn-sm btn-link text-decoration-none fw-semibold p-0">
+        <span class="lang-hi">સબ દેખો →</span>
+        <span class="lang-en">View All →</span>
+    </a>
+</div>
+
+@if (!Model.RecentLots.Any())
+{
+    <div class="card-custom p-4 text-center bg-white shadow-sm">
+        <div class="fs-1 mb-2">📦</div>
+        <h6 class="fw-bold">
+            <span class="lang-hi">ઇસ તારીખ મેં કોઈ લોટ નહીં મિલા</span>
+            <span class="lang-en">No lots found for this date range</span>
+        </h6>
+        @if (Model.HasDateFilter)
+        {
+            <div class="d-flex justify-content-center gap-2 mt-3">
+                <a asp-page="/Index" class="btn btn-outline-secondary btn-sm fw-bold">
+                    🔄 <span class="lang-hi">ફિલ્ટર હટાઓ</span><span class="lang-en">Clear Filter</span>
+                </a>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="row g-2 g-md-3">
+        @foreach (var lot in Model.RecentLots)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card-custom h-100 p-3 d-flex flex-column justify-content-between shadow-sm bg-white border">
+                    <div>
+                        <!-- Header with Dates in dd/mm/yyyy & Status -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-dark fw-bold fs-6">@lot.LotNumber</span>
+                                <span class="badge bg-light text-dark border ms-1 fw-semibold">
+                                    @(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")
+                                    @if (lot.EndDate.HasValue)
+                                    {
+                                        <span> - @lot.EndDate.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                </span>
+                            </div>
+                            <span class="badge @(lot.Status == "Ready" ? "bg-success" : lot.Status == "Discarded" ? "bg-secondary" : "bg-warning text-dark")">
+                                @(lot.Status == "Ready" ? "✓ Ready" : lot.Status)
+                            </span>
+                        </div>
+
+                        <!-- Image & Details -->
+                        <div class="d-flex gap-2 gap-sm-3 my-2 align-items-center">
+                            @if (!string.IsNullOrEmpty(lot.PhotoUrl))
+                            {
+                                <img src="@lot.PhotoUrl" alt="@lot.LotNumber" class="rounded-3 border flex-shrink-0" style="width: 64px; height: 64px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 64px; height: 64px;">
+                                    <span class="fs-4">👕</span>
+                                </div>
+                            }
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-bold text-truncate text-dark">
+                                    @lot.ItemName @(!string.IsNullOrEmpty(lot.Color) ? $"({lot.Color})" : "")
+                                </div>
+                                <div class="text-muted small text-truncate">
+                                    <span class="lang-hi">વેપારી:</span><span class="lang-en">Merchant:</span> 
+                                    <strong>@lot.MerchantName</strong>
+                                </div>
+                                <div class="small text-primary fw-bold mt-1">
+                                    @lot.TotalPieces <span class="lang-hi">પીસ</span><span class="lang-en">pcs</span> @@ ₹@lot.MerchantRatePerPiece
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Snapshot (Revenue / Expense / Profit) -->
+                        <div class="row g-1 text-center small my-2">
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">વેપારી</span><span class="lang-en">Revenue</span>
+                                    </div>
+                                    <div class="fw-bold text-success">₹@lot.MerchantTotalRevenue.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">ખર્ચ</span><span class="lang-en">Expense</span>
+                                    </div>
+                                    <div class="fw-bold text-danger">₹@lot.TotalExpense.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-white border rounded">
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <span class="lang-hi">મુનાફા</span><span class="lang-en">Profit</span>
+                                    </div>
+                                    <div class="fw-bold text-primary">₹@lot.NetProfit.ToString("N0")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons (Mobile Touch Friendly) -->
+                    <div class="d-flex gap-1 gap-sm-2 pt-2 border-top mt-2">
+                        <a asp-page="/Lots/Process" asp-route-id="@lot.Id" class="btn btn-success btn-sm flex-grow-1 fw-bold py-2">
+                            🛠️ <span class="lang-hi">કટિંગ / સિલાઈ</span><span class="lang-en">Process</span>
+                        </a>
+                        <a asp-page="/Lots/Details" asp-route-id="@lot.Id" class="btn btn-outline-primary btn-sm fw-bold py-2 px-2 px-sm-3" title="Invoice Slip">
+                            🧾 <span class="lang-hi">પરચી</span><span class="lang-en">Slip</span>
+                        </a>
+                        <a asp-page="/Lots/Manage" asp-route-id="@lot.Id" class="btn btn-light btn-sm border py-2 px-2" title="Edit Lot">
+                            ✏️
+                        </a>
+                        <button type="button" onclick="shareLotWhatsApp('@lot.LotNumber', '@(lot.StartDate.HasValue ? lot.StartDate.Value.ToString("dd/MM/yyyy") : "")', '@lot.MerchantName', '@lot.ItemName', '@lot.Color', '@lot.TotalPieces', '@lot.MerchantRatePerPiece', '@lot.MerchantTotalRevenue.ToString("N0")', '@lot.TotalExpense.ToString("N0")', '@lot.NetProfit.ToString("N0")', '@lot.Status')" 
+                                class="btn btn-outline-success btn-sm border py-2 px-2 d-inline-flex align-items-center justify-content-center" title="Share on WhatsApp">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16">
+                                <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.016-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
